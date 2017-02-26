@@ -1,0 +1,19 @@
+{
+  "name": "codealike-core",
+  "version": "0.0.1",
+  "description": "Codealike core",
+  "main": "codealike.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "author": "Daniel Iglesias <daniel.iglesias@outlook.com.ar>",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "lodash": "^4.17.4",
+    "lodash-node": "^3.10.2",
+    "mocha": "^3.2.0",
+    "sinon": "^1.17.7",
+    "winston": "^2.3.1"
+  }
+}
