@@ -4,12 +4,13 @@
   "description": "Codealike core",
   "main": "codealike.js",
   "scripts": {
-    "test": "mocha test"
+    "test": "./node_modules/.bin/istanbul test ./node_modules/.bin/_mocha -- -R spec test/**/*"
   },
   "author": "Daniel Iglesias <daniel.iglesias@outlook.com.ar>",
   "license": "ISC",
   "devDependencies": {
     "chai": "^3.5.0",
+    "istanbul": "^0.4.5",
     "lodash-node": "^3.10.2",
     "mocha": "^3.2.0",
     "sinon": "^1.17.7"
