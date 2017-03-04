@@ -5,6 +5,8 @@ var _ = require('lodash-node');
 var Recorder = {
     isInitialized: false,
     currentSession: null,
+    lastEvent: null,
+    lastState: null,
 
     initialize: function() {
         this.isInitialized = true;
@@ -42,6 +44,9 @@ var Recorder = {
 
         // adds the event to the current session
         this.currentSession.events.push(event);
+
+        // sets event as last event
+        this.lastEvent = event;
     },
 
     recordState: function(state) {
@@ -50,6 +55,9 @@ var Recorder = {
 
         // adds the state to the current session
         this.currentSession.states.push(state);
+
+        // sets state as last state
+        this.lastState = state;
     },
 };
 

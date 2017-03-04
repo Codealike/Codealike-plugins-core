@@ -4,8 +4,7 @@ var assert = require('chai').assert;
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var codealike = require('../codealike').Codealike
-var eventTracker = require('../trackers/eventTracker').EventTracker;
-var stateTracker = require('../trackers/stateTracker').StateTracker;
+var activityType = require('../types/activityType').ActivityType;
 var recorder = require('../recorder/recorder').Recorder
 
 var originalLog, originalInfo = null;
@@ -60,25 +59,21 @@ describe('Codealike Tracker', function() {
     it('Not tracking', function() {
         codealike.stopTracking();
 
-        var trackFocus = eventTracker.trackFocus,
-            trackCoding = eventTracker.trackCoding,
-            trackSystem = stateTracker.trackSystem;
+        var trackEvent = recorder.recordEvent,
+            trackState = recorder.recordState;
 
-        eventTracker.trackFocus = sinon.spy();
-        eventTracker.trackCoding = sinon.spy();
-        stateTracker.trackSystem = sinon.spy();
+        recorder.recordEvent = sinon.spy();
+        recorder.recordState = sinon.spy();
 
         codealike.trackCodingEvent({ file: 'f1.js '});
         codealike.trackFocusEvent({ file: 'f1.js' });
         codealike.trackSystemState({ file: 'f1.js' });
 
-        assert.equal(0, eventTracker.trackFocus.callCount, 'Track focus event should not be called if tracking is disabled');
-        assert.equal(0, eventTracker.trackCoding.callCount, 'Track coding event should not be called if tracking is disabled');
-        assert.equal(0, stateTracker.trackSystem.callCount, 'Track system state should not be called if tracking is disabled');
+        assert.equal(0, recorder.recordEvent.callCount, 'Record event should not be called if tracking is disabled');
+        assert.equal(0, recorder.recordState.callCount, 'Record state should not be called if tracking is disabled');
     
-        eventTracker.trackFocus = trackFocus;
-        eventTracker.trackCoding = trackCoding;
-        stateTracker.trackSystem = trackSystem;
+        recorder.recordEvent = trackEvent;
+        recorder.recordState = trackState;
     });
 
     it('Flush interval', function() {
