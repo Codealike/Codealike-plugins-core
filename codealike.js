@@ -53,7 +53,20 @@ var Codealike = {
     },
 
     checkIdle: function() {
-
+        // if last state was idle, it seems to be still idle
+        if (recorder.lastState.activityType === activityType.Idle) {
+            recorder.updateLastState();
+        }
+        else {
+            let currentTime = new Date();
+            let elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime) / 1000;
+            if (elapsedFromLastEventInSeconds > 10) {
+                recorder.recordState({
+                    activityType: activityType.Idle,
+                    start: currentTime 
+                });
+            }
+        }
     },
 
     flushData: function() {
@@ -70,7 +83,7 @@ var Codealike = {
         if (!this.isTracking)
             return;
 
-        // set event type
+        // completes event information
         context.activityType = activityType.DocumentFocus;
         context.start = new Date();
 
@@ -84,7 +97,7 @@ var Codealike = {
         if (!this.isTracking)
             return;
 
-        // set event type
+        // completes event information
         context.activityType = activityType.DocumentEdit;
         context.start = new Date();
 

@@ -7,6 +7,7 @@ var Recorder = {
     currentSession: null,
     lastEvent: null,
     lastState: null,
+    lastEventTime: null,
 
     initialize: function() {
         this.isInitialized = true;
@@ -38,15 +39,31 @@ var Recorder = {
         return sessionToFlush;
     },
 
+    isLastEventPropagating: function(event) {
+        return (
+            this.lastEvent !== null
+            && event.file === this.lastEvent.file
+            && event.line === this.lastEvent.line
+        );
+    },
+
     recordEvent: function(event) {
         if (!this.isInitialized)
             throw new Error("Recorder should be initialized before used");
 
-        // adds the event to the current session
-        this.currentSession.events.push(event);
+        if (this.isLastEventPropagating(event)) {
+            this.updateLastEvent();
+        }
+        else {
+            // adds the event to the current session
+            this.currentSession.events.push(event);
 
-        // sets event as last event
-        this.lastEvent = event;
+            // sets event as last event
+            this.lastEvent = event;
+        }
+
+        // saves time from last event
+        this.lastEventTime = new Date();
     },
 
     recordState: function(state) {
@@ -59,6 +76,14 @@ var Recorder = {
         // sets state as last state
         this.lastState = state;
     },
+
+    updateLastEvent: function() {
+        this.lastEvent.end = new Date();
+    },
+
+    updateLastState: function() {
+        this.lastState.end = new Date();
+    }
 };
 
 module.exports = { Recorder };
