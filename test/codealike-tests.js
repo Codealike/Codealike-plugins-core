@@ -98,8 +98,39 @@ describe('Codealike Tracker', function() {
         codealike.trackSystemState({ file: 'f1.js' });
 
         var recordedBatch = recorder.getLastBatch();
-        assert.equal(2, recordedBatch.states.length, 'Should recorded 2 state');
+
+        assert.equal(1, recordedBatch.states.length, 'Should recorded 1 state');
         assert.equal(2, recordedBatch.events.length, 'Should recorder 2 events');
+
+        this.clock.restore();
+    });
+
+    it('Idle verification', function() {
+        this.clock = sinon.useFakeTimers();
+        codealike.startTracking();
+
+        codealike.trackSystemState({ file: 'f1.js' });
+        codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
+
+        this.clock.tick(2000);
+
+        codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
+
+        this.clock.tick(28000);
+
+        assert.equal(activityType.System, recorder.lastState.activityType, 'Last state should be still System after 28 secs of inactivity');
+
+        this.clock.tick(30000);
+
+        assert.equal(activityType.Idle, recorder.lastState.activityType, 'After another 30 seconds state should change to Idle');
+        
+        this.clock.tick(30000);
+
+        assert.equal(activityType.Idle, recorder.lastState.activityType, 'Afther another 60 seconds state should be still Idle');
+
+        var recordedBatch = recorder.getLastBatch();
+        assert.equal(2, recordedBatch.states.length, 'Should recorded 2 state');
+        assert.equal(1, recordedBatch.events.length, 'Should recorder 2 event');
 
         this.clock.restore();
     });

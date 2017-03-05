@@ -42,9 +42,17 @@ var Recorder = {
     isLastEventPropagating: function(event) {
         return (
             this.lastEvent !== null
+            && event.activityType === this.lastEvent.activityType
             && event.file === this.lastEvent.file
             && event.line === this.lastEvent.line
         );
+    },
+
+    isLastStatePropagating: function(state) {
+        return (
+            this.lastState !== null
+            && state.activityType === this.lastState.activityType
+        )
     },
 
     recordEvent: function(event) {
@@ -55,6 +63,11 @@ var Recorder = {
             this.updateLastEvent();
         }
         else {
+            // set the finalization of the last event
+            if (this.lastEvent) {
+                this.lastEvent.end = new Date();
+            }
+
             // adds the event to the current session
             this.currentSession.events.push(event);
 
@@ -70,11 +83,21 @@ var Recorder = {
         if (!this.isInitialized)
             throw new Error("Recorder should be initialized before used");
 
-        // adds the state to the current session
-        this.currentSession.states.push(state);
+        if (this.isLastStatePropagating(state)) {
+            this.updateLastState();
+        }
+        else {
+            // set the finalization of the last state
+            if (this.lastState) {
+                this.lastState.end = new Date();
+            }
 
-        // sets state as last state
-        this.lastState = state;
+            // adds the state to the current session
+            this.currentSession.states.push(state);
+
+            // sets state as last state
+            this.lastState = state;
+        }
     },
 
     updateLastEvent: function() {

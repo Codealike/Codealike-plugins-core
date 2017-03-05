@@ -34,7 +34,7 @@ var Codealike = {
         this.isTracking = true;
 
         this.flushInterval = setInterval(this.flushData, 10000);
-        this.idleCheckInterval = setInterval(this.checkIdle, 60000);
+        this.idleCheckInterval = setInterval(this.checkIdle, 30000);
 
         logger.info('Codealike started tracking');
     },
@@ -60,10 +60,10 @@ var Codealike = {
         else {
             let currentTime = new Date();
             let elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime) / 1000;
-            if (elapsedFromLastEventInSeconds > 10) {
+            if (elapsedFromLastEventInSeconds > 60) {
                 recorder.recordState({
                     activityType: activityType.Idle,
-                    start: currentTime 
+                    start: currentTime
                 });
             }
         }
