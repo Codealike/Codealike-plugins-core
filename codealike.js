@@ -33,6 +33,8 @@ var Codealike = {
 
         this.isTracking = true;
 
+        this.trackSystemState({});
+
         this.flushInterval = setInterval(this.flushData, 10000);
         this.idleCheckInterval = setInterval(this.checkIdle, 30000);
 
@@ -46,6 +48,9 @@ var Codealike = {
         if (this.isTracking) {
             clearInterval(this.flushInterval);
             clearInterval(this.idleCheckInterval);
+
+            this.checkIdle();
+            this.flushData();
         }
 
         this.isTracking = false;
@@ -53,14 +58,17 @@ var Codealike = {
     },
 
     checkIdle: function() {
+        if (!recorder.lastState)
+            return;
+
         // if last state was idle, it seems to be still idle
         if (recorder.lastState.activityType === activityType.Idle) {
             recorder.updateLastState();
         }
         else {
-            let currentTime = new Date();
-            let elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime) / 1000;
-            if (elapsedFromLastEventInSeconds > 60) {
+            var currentTime = new Date();
+            var elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime);
+            if (elapsedFromLastEventInSeconds >= 60000) {
                 recorder.recordState({
                     activityType: activityType.Idle,
                     start: currentTime
@@ -71,6 +79,9 @@ var Codealike = {
 
     flushData: function() {
         logger.info('Codealike is sending data');
+
+        if (!recorder.isInitialized)
+            return;
 
         // gets data to be sent to the server
         var dataToSend = recorder.getLastBatch();
@@ -87,6 +98,11 @@ var Codealike = {
         context.activityType = activityType.DocumentFocus;
         context.start = new Date();
 
+        recorder.recordState({
+            activityType: activityType.Navigating,
+            start: new Date()
+        });
+
         recorder.recordEvent(context);
     },
 
@@ -100,6 +116,11 @@ var Codealike = {
         // completes event information
         context.activityType = activityType.DocumentEdit;
         context.start = new Date();
+
+        recorder.recordState({
+            activityType: activityType.Coding,
+            start: new Date()
+        });
 
         recorder.recordEvent(context);
     },

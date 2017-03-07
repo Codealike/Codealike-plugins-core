@@ -12,6 +12,8 @@ var Recorder = {
     initialize: function() {
         this.isInitialized = true;
 
+        this.lastEvent = null;
+        this.lastState = null;
         this.currentSession = {
             states: [],
             events: []
@@ -20,6 +22,8 @@ var Recorder = {
 
     dispose: function() {
         this.isInitialized = false;
+        this.lastEvent = null;
+        this.lastState = null;
         this.currentSession = null;
     },
 

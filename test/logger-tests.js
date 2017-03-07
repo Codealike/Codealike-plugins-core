@@ -8,7 +8,7 @@ var originalLog, originalInfo, originalError, originalTrace = null;
 
 describe('Logger', function() {
 
-    before('Mock console routines', function() {
+    beforeEach('Mock console routines', function() {
         originalLog = console.log;
         originalInfo = console.info;
         originalError = console.error;
@@ -20,7 +20,7 @@ describe('Logger', function() {
         console.trace = sinon.spy();
     });
 
-    after('Restore console routines', function() {
+    afterEach('Restore console routines', function() {
         console.info = originalInfo;
         console.log = originalLog;
         console.error = originalError;
@@ -36,8 +36,7 @@ describe('Logger', function() {
     it('Log', function() {
         logger.log('Log message', null);
 
-        //TODO: verify why console.log seems to be called twice
-        assert.equal(2, console.log.callCount, 'Console log should be called once');
+        assert.equal(1, console.log.callCount, 'Console log should be called once');
     });
 
     it('Error', function() {
