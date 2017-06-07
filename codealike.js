@@ -17,11 +17,11 @@ var Codealike = {
     },
 
     dispose: function() {
-        recorder.dispose();
-
         if (this.isTracking) {
             this.stopTracking();
         }
+
+        recorder.dispose();
 
         this.isInitialized = false;
         logger.info('Codealike disposed');
