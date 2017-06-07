@@ -104,6 +104,8 @@ var Codealike = {
         });
 
         recorder.recordEvent(context);
+
+        logger.info('Codealike Tracked Focus', context);
     },
 
     trackCodingEvent: function(context) {
@@ -123,6 +125,8 @@ var Codealike = {
         });
 
         recorder.recordEvent(context);
+
+        logger.info('Codealike Tracked Event', context);
     },
 
     trackSystemState: function(context) {
