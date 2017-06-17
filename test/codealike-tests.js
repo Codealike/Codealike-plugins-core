@@ -29,6 +29,8 @@ describe('Codealike Tracker', function() {
     it('Initialization', function() {
         assert.equal(true, codealike.isInitialized, 'Codealike should be initialized before used');
         assert.equal(true, recorder.isInitialized, 'Recorder should be initialized before used');
+        assert.notEqual(null, codealike.configuration.identity, 'Codealike should receive valid configuration identity before used');
+        assert.notEqual(null, codealike.configuration.token, 'Codealike should receive valid configuration token before used');
     });
 
     it('Initialization error thrown', function() {

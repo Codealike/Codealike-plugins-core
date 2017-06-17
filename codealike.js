@@ -10,9 +10,23 @@ var Codealike = {
     flushInterval: null,
     idleCheckInterval: null,
 
-    initialize: function() {
+    /* codealike configuration consists in:
+     * securityToken: user token to be used to comunicate with server
+     */
+    configuration: {
+        identity: null,
+        token: null
+    },
+
+    initialize: function(configuration) {
         recorder.initialize();
-        this.isInitialized = true;        
+
+        // stores received configuration
+        this.configuration = configuration;
+
+        // set initialized flag as true
+        this.isInitialized = true;
+        
         logger.info('Codealike initialized');
     },
 
