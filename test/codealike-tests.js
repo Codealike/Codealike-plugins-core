@@ -9,6 +9,13 @@ var recorder = require('../recorder/recorder').Recorder
 
 var originalLog, originalInfo = null;
 
+describe('Codealike initialization', function() {
+    it('Initialization configuration', function() {
+        expect(() => codealike.initialize())
+            .to.throw('Codealike configuration should contain a client Id');
+    });
+});
+
 describe('Codealike Tracker', function() {
     beforeEach('Mock console routines', function() {
         originalLog = console.log;
@@ -16,7 +23,7 @@ describe('Codealike Tracker', function() {
         console.log = sinon.spy();
         console.info = sinon.spy();
 
-        codealike.initialize();
+        codealike.initialize('defaultClient');
     });
 
     afterEach('Restore console routines', function() {
@@ -29,8 +36,8 @@ describe('Codealike Tracker', function() {
     it('Initialization', function() {
         assert.equal(true, codealike.isInitialized, 'Codealike should be initialized before used');
         assert.equal(true, recorder.isInitialized, 'Recorder should be initialized before used');
-        assert.notEqual(null, codealike.configuration.identity, 'Codealike should receive valid configuration identity before used');
-        assert.notEqual(null, codealike.configuration.token, 'Codealike should receive valid configuration token before used');
+        assert.notEqual(null, codealike.configuration.token, 'Codealike should receive valid configuration before used');
+        assert.notEqual(null, codealike.configuration.clientId, 'Codealike should receive valid client id before used');
     });
 
     it('Initialization error thrown', function() {
@@ -86,7 +93,7 @@ describe('Codealike Tracker', function() {
         this.clock.restore();
     });
 
-    it('Iddle interval', function() {
+    it('Idle interval', function() {
         this.clock = sinon.useFakeTimers();
         var checkIdleSpy = sinon.spy(codealike, "checkIdle");
         

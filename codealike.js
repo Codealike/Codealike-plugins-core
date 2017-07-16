@@ -3,26 +3,38 @@
 var logger = require('./logger/logger').Logger;
 var recorder = require('./recorder/recorder').Recorder;
 var activityType = require('./types/activityType').ActivityType;
+var api = require('./api/codealikeApi.js').Api;
 
 var Codealike = {
     isInitialized: false,
     isTracking: false,
     flushInterval: null,
     idleCheckInterval: null,
+    apiInstance: null,
 
     /* codealike configuration consists in:
      * securityToken: user token to be used to comunicate with server
      */
     configuration: {
-        identity: null,
-        token: null
+        token: null, // user authentication token to be used for api comunication
+        clientId: null // clientId: atom | vscode | others...
     },
 
-    initialize: function(configuration) {
+    initialize: function(clientId = null, token = 'invalid/token') {
+        // client identificator should be provided to configure codealike instance
+        if (clientId == null)
+            throw new Error('Codealike configuration should contain a client Id');
+
         recorder.initialize();
 
         // stores received configuration
-        this.configuration = configuration;
+        this.configuration = {
+            clientId: clientId,
+            token: token
+        };
+
+        // initialize api
+        api.initialize(clientId);
 
         // set initialized flag as true
         this.isInitialized = true;
@@ -39,6 +51,11 @@ var Codealike = {
 
         this.isInitialized = false;
         logger.info('Codealike disposed');
+    },
+
+    authenticate(userToken) {
+        // try to execute api call
+        return api.authenticate(userToken);
     },
 
     startTracking: function() {

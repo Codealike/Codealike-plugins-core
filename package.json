@@ -4,7 +4,7 @@
   "description": "Codealike core",
   "main": "codealike.js",
   "scripts": {
-    "test": "./node_modules/.bin/istanbul test ./node_modules/.bin/_mocha -- -R spec test/**/*"
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec test/**/*"
   },
   "author": "Daniel Iglesias <daniel.iglesias@outlook.com.ar>",
   "license": "ISC",
@@ -13,6 +13,7 @@
     "istanbul": "^0.4.5",
     "lodash-node": "^3.10.2",
     "mocha": "^3.2.0",
-    "sinon": "^1.17.7"
+    "sinon": "^1.17.7",
+    "node-fetch": "^1.7.1"
   }
 }

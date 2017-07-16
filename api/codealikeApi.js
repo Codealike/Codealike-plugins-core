@@ -1,28 +1,58 @@
 'use strict'
 
-const X_EAUTH_CLIENT_HEADER = "X-Eauth-Client";
-const X_EAUTH_TOKEN_HEADER = "X-Api-Token";
-const X_EAUTH_IDENTITY_HEADER = "X-Api-Identity";
-const MAX_RETRIES = 5;
+var logger = require('../logger/logger').Logger;
+var configuration = require('../configuration').Configuration;
+var client = require('./restClient/fetchClient').RestClient;
 
-var api = {
-    identity: null,
-    token: null,
+var Api = {
+    clientId: null,
+    isInitialized: false,
 
-    initialize: function(identity, token) {
-        this.identity = identity;
-        this.token = token;
+    initialize: function(clientId = null) {
+        // client identificator should be provided to configure codealike instance
+        if (clientId === null)
+            throw new Error('Codealike api initialization requires a client Id');
+        
+        // stores client identificator for api calls
+        this.clientId = clientId;
+
+        // set initialized flag as true
+        this.isInitialized = true;
+
+        logger.info('Codealike api initialized');
     },
 
-    authenticate: function() {
-        // /api/v2/account/weak-9396226521/authorized
-        // https://codealike.com/api/v2/account/weak-9396226521/authorized
+    dispose: () => {
+        this.isInitialized = false;
+        logger.info('Codealike api disposed');
+    },
 
-        /*
-        invocationBuilder.header(X_EAUTH_IDENTITY_HEADER, this.identity);
-		invocationBuilder.header(X_EAUTH_TOKEN_HEADER, this.token);
-		invocationBuilder.header(X_EAUTH_CLIENT_HEADER, "intellij");
-         */
+    authenticate: function(userToken) {
+        if (!this.isInitialized)
+            throw new Error("Codealike Api should be initialized before used");
+
+        let clientId = this.clientId;
+
+        return new Promise(
+            function(resolve, reject) {
+                var tokenArray = userToken.split('/');
+
+                // token structure requires at least two elements
+                if (tokenArray.length != 2)
+                    reject("Invalid token provided");
+
+                // execute request to authenticate the user
+                client.executeGet(clientId, `account/${tokenArray[0]}/authorized`, tokenArray[0], tokenArray[1])
+                    .then((result) => { 
+                        logger.log("Request success", result);
+                        resolve(result) 
+                    }, 
+                    (error) => { 
+                        logger.log('Request failed', error);
+                        reject(error) 
+                    });
+            }
+        );
     },
 
     getProfile: function(userName) {
@@ -103,4 +133,4 @@ var api = {
     }
 }
 
-module.exports = { api };
+module.exports = { Api };

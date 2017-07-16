@@ -1,0 +1,58 @@
+var fetch = require('node-fetch');
+var logger = require('../../logger/logger').Logger;
+
+const API_URL = "https://codealike.com/api/v2";
+const X_EAUTH_CLIENT_HEADER = "X-Eauth-Client";
+const X_EAUTH_TOKEN_HEADER = "X-Api-Token";
+const X_EAUTH_IDENTITY_HEADER = "X-Api-Identity";
+const MAX_RETRIES = 5;
+
+// this function returns the base common request
+// configuration required to hit the api
+function getRequestConfig(requestMethod, clientId, identity, token, model) {
+    // create request configuration for requested method
+    let config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Eauth-Client': clientId,
+            'X-Api-Identity': identity,
+            'X-Api-Token': token
+        },
+        method: requestMethod
+    };
+
+    // attach model to request body if defined
+    if (model) {
+        config.body = JSON.stringify(model);
+    }
+
+    return config;
+}
+
+// this function handles api response checking
+// if response if succesfull or not
+function handleResponse(response) {
+    if (response.ok) {
+        return response.clone().json().catch(function() {
+            return response.text();
+        });
+    } else {
+        var error = new Error(response.statusText)
+        error.response = response
+        throw error
+    }
+}
+
+var RestClient = {
+    executeGet: (clientId, route, userId, userToken) => {
+        let url = `${API_URL}/${route}`;
+        let config = getRequestConfig('GET', clientId, userId, userToken);
+
+        logger.log('Starting request', { url, config });
+
+        return fetch(url, config)
+                .then(r => handleResponse(r));
+    }
+}
+
+module.exports = { RestClient };
