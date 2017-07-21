@@ -47,11 +47,17 @@ var RestClient = {
     executeGet: (clientId, route, userId, userToken) => {
         let url = `${API_URL}/${route}`;
         let config = getRequestConfig('GET', clientId, userId, userToken);
-
-        logger.log('Starting request', { url, config });
-
-        return fetch(url, config)
-                .then(r => handleResponse(r));
+        
+        return new Promise(
+            function(resolve, reject) {
+            fetch(url, config)
+                .then(r => handleResponse(r))
+                .then(
+                    result => resolve(result), 
+                    error => reject(result)
+                )
+                .catch(error => reject(error));
+        });
     }
 }
 

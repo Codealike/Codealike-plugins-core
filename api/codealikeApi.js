@@ -6,6 +6,9 @@ var client = require('./restClient/fetchClient').RestClient;
 
 var Api = {
     clientId: null,
+    userId: null,
+    token: null,
+    isAuthenticated: false,
     isInitialized: false,
 
     initialize: function(clientId = null) {
@@ -22,17 +25,27 @@ var Api = {
         logger.info('Codealike api initialized');
     },
 
-    dispose: () => {
+    dispose: function() {
         this.isInitialized = false;
+        
         logger.info('Codealike api disposed');
+    },
+
+    disconnect: function() {
+        this.clientId = null;
+        this.userId = null;
+        this.token = null;
+        this.isAuthenticated = false;
     },
 
     authenticate: function(userToken) {
         if (!this.isInitialized)
             throw new Error("Codealike Api should be initialized before used");
 
-        let clientId = this.clientId;
+        // save reference for inner execution
+        let that = this;
 
+        // return authentication promise
         return new Promise(
             function(resolve, reject) {
                 var tokenArray = userToken.split('/');
@@ -41,21 +54,38 @@ var Api = {
                 if (tokenArray.length != 2)
                     reject("Invalid token provided");
 
+                // save data internally in api
+                that.userId = tokenArray[0];
+                that.token = tokenArray[1];
+
                 // execute request to authenticate the user
-                client.executeGet(clientId, `account/${tokenArray[0]}/authorized`, tokenArray[0], tokenArray[1])
+                client.executeGet(that.clientId, `account/${that.userId}/authorized`, that.userId, that.token)
                     .then((result) => { 
-                        logger.log("Request success", result);
-                        resolve(result) 
-                    }, 
-                    (error) => { 
-                        logger.log('Request failed', error);
-                        reject(error) 
-                    });
+                        // set api as authenticated and resolve
+                        that.isAuthenticated = true;
+
+                        resolve(result);
+                    })
+                    .catch((error) => { 
+                        // if authentication was un succesful 
+                        // clean up user id and token and reject
+                        that.isAuthenticated = false;
+                        that.userId = null;
+                        that.token = null;
+
+                        reject(error);
+                     });
             }
         );
     },
 
-    getProfile: function(userName) {
+    getProfile: function() {
+        if (!this.isInitialized)
+            throw new Error("Codealike Api should be initialized before used");
+
+        if (!this.isAuthenticated)
+            throw new Error("User should authenticate before being able to ask for profile information");
+
         //apiTarget.path("account").path(username).path("profile") GET
         /* 
         	private String identity;
@@ -67,6 +97,22 @@ var Api = {
             private String avatarUri;
             private String email;
         */
+        // save reference for inner execution
+        let that = this;
+
+        // return authentication promise
+        return new Promise(
+            function(resolve, reject) {
+                // execute request to authenticate the user
+                client.executeGet(that.clientId, `account/${that.userId}/profile`, that.userId, that.token)
+                    .then((result) => { 
+                        resolve(result);
+                    })
+                    .catch((error) => { 
+                        reject(error);
+                     });
+            }
+        );
     },
 
     getUserConfiguration: function(userName) {
