@@ -10,52 +10,82 @@ var Codealike = {
     isTracking: false,
     flushInterval: null,
     idleCheckInterval: null,
-    apiInstance: null,
+    isConnected: false,
 
-    /* codealike configuration consists in:
-     * securityToken: user token to be used to comunicate with server
+    /*
+     *  initialize:
+     *  Initialize process should configure api and recorder instances
+     *  to be prepared to connect and start tracking if required.
+     *  Api initialization requires a 'cliendId' to identificate requests 
+     *  in name of 'client'
      */
-    configuration: {
-        token: null, // user authentication token to be used for api comunication
-        clientId: null // clientId: atom | vscode | others...
-    },
-
-    initialize: function(clientId = null, token = 'invalid/token') {
+    initialize: function(clientId) {
         // client identificator should be provided to configure codealike instance
         if (clientId == null)
             throw new Error('Codealike configuration should contain a client Id');
 
-        recorder.initialize();
-
-        // stores received configuration
-        this.configuration = {
-            clientId: clientId,
-            token: token
-        };
-
         // initialize api
         api.initialize(clientId);
+
+        // initialize recorder
+        recorder.initialize();
 
         // set initialized flag as true
         this.isInitialized = true;
         
+        // log initialized finished
         logger.info('Codealike initialized');
     },
 
+    /*
+     *  dispose:
+     *  Dispose process should dispose api and recorder instances
+     *  If tracking, should stop tracking before releasing recorder and api
+     */
     dispose: function() {
-        if (this.isTracking) {
+        // if tracking, stop it
+        if (this.isTracking)
             this.stopTracking();
-        }
 
+        // dispose recorder
         recorder.dispose();
 
+        // dispose api
+        api.dispose();
+
+        // set initialized as false
         this.isInitialized = false;
+
+        // log disposed finished
         logger.info('Codealike disposed');
     },
 
-    authenticate(userToken) {
-        // try to execute api call
+    /*
+     *  connect:
+     *  Connect process should try to authenticate user with given token
+     *  If authenticated, api should be configured to be able to perform
+     *  further requests in users name (by keeping user authentication info).
+     */
+    connect(userToken) {
         return api.authenticate(userToken);
+    },
+
+    getProfile() {
+        return api.getProfile();
+    },
+
+    /*
+     * disconnect:
+     *  Disconnect process should stop tracking (if already doing that)
+     *  and disconnect api.
+     *  Codealike instance should be safe for disposing after this mathod.
+     */
+    disconnect() {
+        // if tracking, stop doing that
+        this.stopTracking();
+
+        // clear api connection data
+        api.disconnect();
     },
 
     startTracking: function() {
