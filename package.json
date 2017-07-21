@@ -15,5 +15,8 @@
     "mocha": "^3.2.0",
     "sinon": "^1.17.7",
     "node-fetch": "^1.7.1"
+  },
+  "dependencies": {
+    "winston": "^2.3.1"
   }
 }

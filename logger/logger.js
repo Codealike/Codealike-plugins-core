@@ -1,20 +1,26 @@
 'use strict'
+var winston = require('winston');
+
+    // while testing, log only to file, leaving stdout free for unit test status messages
+const wlogger = new (winston.Logger)({
+    transports: [
+        new (winston.transports.File)({ filename: 'codealike.log' })
+    ],
+    level: 'debug'
+});
 
 var Logger = {
-    getTimedMessage: function(message) {
-        return new Date().toISOString() + ' - ' + message;
-    },
     info: function(message) {
-        console.info(this.getTimedMessage(message));
+        wlogger.log('info', message);
     },
     log: function(message, params) {
-        console.log(this.getTimedMessage(message), params);
+        wlogger.log('verbose', message, params);
     },
     error: function(message) {
-        console.error(this.getTimedMessage(message));
+        wlogger.log('error', message);
     },
     trace: function(message, params) {
-        console.trace(this.getTimedMessage(message), params);
+        wlogger.log('debug', message, params);
     },
 }
 
