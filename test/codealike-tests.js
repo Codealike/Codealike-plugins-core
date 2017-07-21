@@ -5,9 +5,8 @@ var expect = require('chai').expect;
 var sinon = require('sinon');
 var codealike = require('../codealike').Codealike
 var activityType = require('../types/activityType').ActivityType;
-var recorder = require('../recorder/recorder').Recorder
-
-var originalLog, originalInfo = null;
+var recorder = require('../recorder/recorder').Recorder;
+var api = require('../api/codealikeApi').Api;
 
 describe('Codealike initialization', function() {
     it('Initialization configuration', function() {
@@ -18,26 +17,18 @@ describe('Codealike initialization', function() {
 
 describe('Codealike Tracker', function() {
     beforeEach('Mock console routines', function() {
-        originalLog = console.log;
-        originalInfo = console.info;
-        console.log = sinon.spy();
-        console.info = sinon.spy();
-
         codealike.initialize('defaultClient');
     });
 
     afterEach('Restore console routines', function() {
         codealike.dispose();
-
-        console.info = originalInfo;
-        console.log = originalLog;
     });
 
     it('Initialization', function() {
         assert.equal(true, codealike.isInitialized, 'Codealike should be initialized before used');
         assert.equal(true, recorder.isInitialized, 'Recorder should be initialized before used');
-        assert.notEqual(null, codealike.configuration.token, 'Codealike should receive valid configuration before used');
-        assert.notEqual(null, codealike.configuration.clientId, 'Codealike should receive valid client id before used');
+        assert.notEqual(null, api.token, 'Codealike should receive valid configuration before used');
+        assert.notEqual(null, api.clientId, 'Codealike should receive valid client id before used');
     });
 
     it('Initialization error thrown', function() {

@@ -6,20 +6,12 @@ var sinon = require('sinon');
 var recorder = require('../recorder/recorder').Recorder
 var activityType = require('../types/activityType').ActivityType;
 
-var originalLog, originalInfo = null;
-
 describe('Codealike Recorder', function() {
 
     beforeEach('Mock console routines', function() {
-        originalLog = console.log;
-        originalInfo = console.info;
-        console.log = sinon.spy();
-        console.info = sinon.spy();
     });
 
     afterEach('Restore console routines', function() {
-        console.info = originalInfo;
-        console.log = originalLog;
     });
 
     it('Initialization error thrown', function() {
