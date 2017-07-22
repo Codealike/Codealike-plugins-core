@@ -130,6 +130,29 @@ var Api = {
             private String name;
             private DateTime creationTime;
         */
+        // save reference for inner execution
+        let that = this;
+
+        // create request body
+        let requestBody = {
+            solutionId: projectId,
+            name: projectName,
+            createTime: new Date()
+        }
+
+        // return authentication promise
+        return new Promise(
+            function(resolve, reject) {
+                // execute request to authenticate the user
+                client.executePost(that.clientId, `solution`, that.userId, that.token, requestBody)
+                    .then((result) => { 
+                        resolve(result);
+                    })
+                    .catch((error) => { 
+                        reject(error);
+                     });
+            }
+        );
     },
 
     getSolutionContext: function(projectId) {
