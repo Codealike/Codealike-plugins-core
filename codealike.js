@@ -4,6 +4,9 @@ var logger = require('./logger/logger').Logger;
 var recorder = require('./recorder/recorder').Recorder;
 var activityType = require('./types/activityType').ActivityType;
 var api = require('./api/codealikeApi.js').Api;
+var fs = require('fs');
+var path = require('path');
+const uuidv1 = require('uuid/v1');
 
 var Codealike = {
     isInitialized: false,
@@ -70,12 +73,18 @@ var Codealike = {
         return api.authenticate(userToken);
     },
 
+    /*
+     *  getProfile:
+     *  GetProfile process should return authenticated user profile information.
+     *  It requires api to be already connected and configured with valid token,
+     *  client and user id.
+     */
     getProfile() {
         return api.getProfile();
     },
 
     /*
-     * disconnect:
+     *  disconnect:
      *  Disconnect process should stop tracking (if already doing that)
      *  and disconnect api.
      *  Codealike instance should be safe for disposing after this mathod.
@@ -88,9 +97,66 @@ var Codealike = {
         api.disconnect();
     },
 
-    startTracking: function() {
+    /*
+     *  configure:
+     *  Configure proces consists in 
+     *  1- verify if codelike configuration file exists for project
+     *  2- if there, get project id from file
+     *  3- if not, generate a new id and register on codealike server
+     *  4- if registered save to configuration file
+     */
+    configure(projectFolderPath) {
+        return new Promise(function(resolve, reject) {
+            // generate codealike json configuration file path
+            let codealikeProjectFile = path.join(projectFolderPath, 'codealike.json');
+
+            // try to get project configuration from file
+            let configuration = null;
+            if (fs.existsSync(codealikeProjectFile)) {
+                configuration = JSON.parse(fs.readFileSync(codealikeProjectFile, 'utf8'));
+            }
+            
+            // if no configuration was retrieved
+            // we have to assign a project id and create configuration file for project
+            if (configuration == null || !configuration.projectId) {
+                // create unique id
+                let projectId = uuidv1();
+                let projectName = path.basename(projectFolderPath);
+
+                // register project
+                api.registerProjectContext(projectId, projectName)
+                    .then(
+                        (result) => {
+                            // convert object to string
+                            let jsonString = JSON.stringify({ projectId: projectId });
+
+                            // if registered, save configuration file
+                            // have to save configuration file
+                            fs.writeFile(codealikeProjectFile, jsonString, 'utf8',
+                                function(error) {
+                                    if (error) {
+                                        reject('Could not save project configuration file.');
+                                    }
+                                    resolve(projectId);
+                                });
+                        },
+                        (error) => {
+                            reject('Could not register project in codealike server.');
+                        }
+                    )
+            }
+            else {
+                resolve(configuration.projectId);
+            }
+        });
+    },
+
+    startTracking: function(projectFolderPath) {
         if (!this.isInitialized)
             throw new Error("Codealike should be initialized before used");
+
+        if (projectFolderPath == null)
+            throw new Error("Codealike requires a folder path to start tracking");
 
         this.isTracking = true;
 
