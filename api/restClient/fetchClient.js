@@ -58,6 +58,21 @@ var RestClient = {
                 )
                 .catch(error => reject(error));
         });
+    },
+    executePost: (clientId, route, userId, userToken, body) => {
+        let url = `${API_URL}/${route}`;
+        let config = getRequestConfig('POST', clientId, userId, userToken, body);
+        
+        return new Promise(
+            function(resolve, reject) {
+            fetch(url, config)
+                .then(r => handleResponse(r))
+                .then(
+                    (result) => resolve(result), 
+                    (error) => reject(result)
+                )
+                .catch(error => reject(error));
+        });
     }
 }
 
