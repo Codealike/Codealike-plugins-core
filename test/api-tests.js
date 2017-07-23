@@ -20,7 +20,10 @@ describe('Authentication', function() {
 
         codealikeApi
             .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f6')
-            .then(result => { logger.trace("Authenticate success", result); done(); })
+            .then(result => { 
+                assert.isNotNull(codealikeApi.userId, "Api should have a valid user id after a successfull authentication");
+                assert.isNotNull(codealikeApi.token, "Api should have a valid user token after a successfull authentication");
+                done(); })
             .catch(error => { throw new Error("Athentication shouldn't fail");  done(); });
 
         codealikeApi.dispose();
@@ -31,8 +34,18 @@ describe('Authentication', function() {
 
         codealikeApi
             .authenticate('invalidtoken')
-            .then(result => { throw new Error("Should throw an error"); done(); })
-            .catch(error => { logger.trace("Authenticate failed", error); done(); });
+            .then(
+                (result) => { 
+                    throw new Error("Should throw an error"); 
+                    done(); 
+                },
+                (error) => { 
+                    assert.equal(error, "Invalid token provided", "Api should reject with token error if token is invalid");
+                    assert.isNull(codealikeApi.userId, "Api should clean user id after a invalid authentication");
+                    assert.isNull(codealikeApi.token, "Api should clean user token after a invalid authentication");
+                    done(); 
+                }
+            );
 
         codealikeApi.dispose();
     });
@@ -42,8 +55,17 @@ describe('Authentication', function() {
 
         codealikeApi
             .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f0')
-            .then(result => { throw new Error("Invalid token should not authenticate"); done(); })
-            .catch(error => { done(); });
+            .then(
+                (result) => { 
+                    throw new Error("Invalid token should not authenticate"); 
+                    done(); 
+                },
+                (error) => { 
+                    assert.isNull(codealikeApi.userId, "Api should clean user id after a invalid authentication");
+                    assert.isNull(codealikeApi.token, "Api should clean user token after a invalid authentication");
+                    done(); 
+                }
+            );
 
         codealikeApi.dispose();
     });
@@ -53,21 +75,21 @@ describe('Get profile', function() {
     it('Succesfully get profile', done => {
         codealikeApi.initialize('testClient');
 
-        codealikeApi
-            .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f6')
-            .then(result => { 
-                codealikeApi.getProfile().then(
-                    profileResult => {
-                        logger.trace("Get profile", profileResult);
-                        done(); 
-                    },
-                    profileError => {
-                        throw new Error("Profile obtention shouldn't fail");
-                        done(); 
-                    }
-                )
-            })
-            .catch(error => { throw new Error("Athentication shouldn't fail");  done(); });
+        // manually configure valid authentication information
+        codealikeApi.isAuthenticated = true;
+        codealikeApi.userId = 'weak-9396226521';
+        codealikeApi.token = '2f0928f1-5df7-43ca-be4f-e54ff99285f6'
+
+        codealikeApi.getProfile().then(
+            (res) => {
+                logger.trace("Get profile", res);
+                done(); 
+            },
+            (err) => {
+                throw new Error("Profile obtention shouldn't fail");
+                done(); 
+            }
+        );
 
         codealikeApi.dispose();
     });

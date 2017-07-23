@@ -45,36 +45,44 @@ var Api = {
         // save reference for inner execution
         let that = this;
 
+        // ensure old connection params are clean
+        that.userId = null;
+        that.token = null;
+
         // return authentication promise
         return new Promise(
             function(resolve, reject) {
                 var tokenArray = userToken.split('/');
-
+                
                 // token structure requires at least two elements
-                if (tokenArray.length != 2)
+                if (tokenArray.length != 2) {
                     reject("Invalid token provided");
+                }
+                else {
+                    // save data internally in api
+                    let tempUserId = tokenArray[0];
+                    let tempToken = tokenArray[1];
 
-                // save data internally in api
-                that.userId = tokenArray[0];
-                that.token = tokenArray[1];
+                    // execute request to authenticate the user
+                    client.executeGet(that.clientId, `account/${tempUserId}/authorized`, tempUserId, tempToken)
+                        .then((result) => { 
+                            // set api as authenticated and resolve
+                            that.isAuthenticated = true;
+                            that.userId = tempUserId;
+                            that.token = tempToken;
 
-                // execute request to authenticate the user
-                client.executeGet(that.clientId, `account/${that.userId}/authorized`, that.userId, that.token)
-                    .then((result) => { 
-                        // set api as authenticated and resolve
-                        that.isAuthenticated = true;
+                            resolve(result);
+                        })
+                        .catch((error) => { 
+                            // if authentication was un succesful 
+                            // clean up user id and token and reject
+                            that.isAuthenticated = false;
+                            that.userId = null;
+                            that.token = null;
 
-                        resolve(result);
-                    })
-                    .catch((error) => { 
-                        // if authentication was un succesful 
-                        // clean up user id and token and reject
-                        that.isAuthenticated = false;
-                        that.userId = null;
-                        that.token = null;
-
-                        reject(error);
-                     });
+                            reject(error);
+                        });
+                }
             }
         );
     },
@@ -105,12 +113,14 @@ var Api = {
             function(resolve, reject) {
                 // execute request to authenticate the user
                 client.executeGet(that.clientId, `account/${that.userId}/profile`, that.userId, that.token)
-                    .then((result) => { 
-                        resolve(result);
-                    })
-                    .catch((error) => { 
-                        reject(error);
-                     });
+                    .then(
+                        (result) => { 
+                            resolve(result);
+                        },
+                        (error) => {
+                            reject(error);
+                        }
+                    );
             }
         );
     },
