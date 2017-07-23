@@ -13,7 +13,15 @@ var Codealike = {
     isTracking: false,
     flushInterval: null,
     idleCheckInterval: null,
-    isConnected: false,
+
+    /*
+     *  currentProject:
+     *  CurrentProject has the information about the current project being tracked
+     *  by codealike. It should at least have a registered projectId.
+     *  The desirable structure is :
+     *  { projectId: <UUID>, projectName: <string> }
+     */
+    currentProject: null,
 
     /*
      *  initialize:
@@ -58,6 +66,7 @@ var Codealike = {
 
         // set initialized as false
         this.isInitialized = false;
+        this.isConfigured = false;
 
         // log disposed finished
         logger.info('Codealike disposed');
@@ -111,14 +120,14 @@ var Codealike = {
             let codealikeProjectFile = path.join(projectFolderPath, 'codealike.json');
 
             // try to get project configuration from file
-            let configuration = null;
+            let existingConfiguration = null;
             if (fs.existsSync(codealikeProjectFile)) {
-                configuration = JSON.parse(fs.readFileSync(codealikeProjectFile, 'utf8'));
+                existingConfiguration = JSON.parse(fs.readFileSync(codealikeProjectFile, 'utf8'));
             }
             
             // if no configuration was retrieved
             // we have to assign a project id and create configuration file for project
-            if (configuration == null || !configuration.projectId) {
+            if (existingConfiguration == null || !existingConfiguration.projectId) {
                 // create unique id
                 let projectId = uuidv1();
                 let projectName = path.basename(projectFolderPath);
@@ -127,8 +136,11 @@ var Codealike = {
                 api.registerProjectContext(projectId, projectName)
                     .then(
                         (result) => {
+                            // create project configuration
+                            let configuration = { projectId: projectId, projectName: projectName };
+
                             // convert object to string
-                            let jsonString = JSON.stringify({ projectId: projectId });
+                            let jsonString = JSON.stringify(configuration);
 
                             // if registered, save configuration file
                             // have to save configuration file
@@ -137,7 +149,7 @@ var Codealike = {
                                     if (error) {
                                         reject('Could not save project configuration file.');
                                     }
-                                    resolve(projectId);
+                                    resolve(configuration);
                                 });
                         },
                         (error) => {
@@ -146,21 +158,33 @@ var Codealike = {
                     )
             }
             else {
-                resolve(configuration.projectId);
+                resolve(existingConfiguration);
             }
         });
     },
 
-    startTracking: function(projectFolderPath) {
+    /*
+     *  startTracking:
+     *  StartTracking activates all required functionalities to start
+     *  tracking events and state changes in a given project.
+     *  It must receive the project configuration of the project being tracked
+     */
+    startTracking: function(projectConfiguration, workspaceStartTime = new Date()) {
         if (!this.isInitialized)
             throw new Error("Codealike should be initialized before used");
 
-        if (projectFolderPath == null)
-            throw new Error("Codealike requires a folder path to start tracking");
+        if (!projectConfiguration)
+            throw new Error("Codealike project configuration is required to start tracking");
 
+        // sets internal state to indicate tracking is in progress
         this.isTracking = true;
 
-        this.trackSystemState({});
+        // saves current project reference for tracking purposes
+        this.currentProject = projectConfiguration;
+
+        // tracks system state and open solution events
+        this.trackSystemState(workspaceStartTime);
+        this.trackOpenSolutionEvent(workspaceStartTime);
 
         this.flushInterval = setInterval(this.flushData, 10000);
         this.idleCheckInterval = setInterval(this.checkIdle, 30000);
@@ -189,7 +213,7 @@ var Codealike = {
             return;
 
         // if last state was idle, it seems to be still idle
-        if (recorder.lastState.activityType === activityType.Idle) {
+        if (recorder.lastState.type === activityType.Idle) {
             recorder.updateLastState();
         }
         else {
@@ -197,7 +221,7 @@ var Codealike = {
             var elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime);
             if (elapsedFromLastEventInSeconds >= 60000) {
                 recorder.recordState({
-                    activityType: activityType.Idle,
+                    type: activityType.Idle,
                     start: currentTime
                 });
             }
@@ -222,11 +246,13 @@ var Codealike = {
             return;
 
         // completes event information
-        context.activityType = activityType.DocumentFocus;
+        context.projectId = this.currentProject.projectId;
+        context.type = activityType.DocumentFocus;
         context.start = new Date();
 
         recorder.recordState({
-            activityType: activityType.Navigating,
+            projectId: this.currentProject.projectId,
+            type: activityType.Navigating,
             start: new Date()
         });
 
@@ -243,11 +269,12 @@ var Codealike = {
             return;
 
         // completes event information
-        context.activityType = activityType.DocumentEdit;
+        context.projectId = this.currentProject.projectId;
+        context.type = activityType.DocumentEdit;
         context.start = new Date();
 
         recorder.recordState({
-            activityType: activityType.Coding,
+            type: activityType.Coding,
             start: new Date()
         });
 
@@ -256,18 +283,44 @@ var Codealike = {
         logger.info('Codealike Tracked Event', context);
     },
 
-    trackSystemState: function(context) {
+    trackSystemState: function(start) {
         if (!this.isInitialized)
             throw new Error("Codealike should be initialized before used");
 
         if (!this.isTracking)
             return;
 
-        // set event type
-        context.activityType = activityType.System;
-        context.start = new Date();
+        // generate state context
+        let context = {
+            projectId: this.currentProject.projectId,
+            type: activityType.System,
+            start: start
+        };
 
+        // record system state, started when workspace started
         recorder.recordState(context);
+
+        logger.info('Codealike Tracked System state', context);
+    },
+
+    trackOpenSolutionEvent: function(start) {
+        if (!this.isInitialized)
+            throw new Error("Codealike should be initialized before used");
+
+        if (!this.isTracking)
+            return;
+
+        // generate event context
+        let context = {
+            projectId: this.currentProject.projectId,
+            type: activityType.OpenSolution,
+            start: start
+        };
+
+        // record open solution event, started when workspace started
+        recorder.recordEvent(context);
+
+        logger.info('Codealike Tracked Open Solution', context);
     }
 };
 
