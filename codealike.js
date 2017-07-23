@@ -7,6 +7,8 @@ var api = require('./api/codealikeApi.js').Api;
 var fs = require('fs');
 var path = require('path');
 const uuidv1 = require('uuid/v1');
+const os = require('os');
+const moment = require('moment');
 
 var Codealike = {
     isInitialized: false,
@@ -236,6 +238,64 @@ var Codealike = {
 
         // gets data to be sent to the server
         var dataToSend = recorder.getLastBatch();
+
+        let data = {
+            machine: os.hostname(),
+            client: api.clientId,
+            solutionId: Codealike.currentProject.projectId,
+            batchId: uuidv1(),
+            instance: '1774775763',
+            projects: [
+                { 
+                    projectId: Codealike.currentProject.projectId,
+                    name: Codealike.currentProject.projectName
+                }
+            ],
+            states: dataToSend.states.map(state => {
+                let startTime = moment(state.start).format();
+                let endTime = moment(state.end).format();
+                let duration = moment.utc(moment(state.end,"DD/MM/YYYY HH:mm:ss").diff(moment(state.start,"DD/MM/YYYY HH:mm:ss"))).format("HH:mm:ss");
+
+                return {
+                    parentId: state.projectId,
+                    type: state.type,
+                    start: startTime,
+                    end: endTime,
+                    duration: duration,
+                }
+            }),
+            events: dataToSend.events.map(event => {
+                let startTime = moment(event.start).format();
+                let endTime = moment(event.end).format();
+                let duration = moment.utc(moment(event.end,"DD/MM/YYYY HH:mm:ss").diff(moment(event.start,"DD/MM/YYYY HH:mm:ss"))).format("HH:mm:ss");
+                return {
+                    parentId: event.projectId,
+                    type: event.type,
+                    start: startTime,
+                    end: endTime,
+                    duration: duration,
+                    context: {
+                        member : '',
+                        namespace : '',
+                        projectId : event.projectId,
+                        file : event.file,
+                        class : '',
+                        line: event.line
+                    }
+                }
+            })
+        }
+
+        logger.info(data);
+        api.postActivity(data)
+            .then(
+                (result) => {
+                    logger.info(result);
+                },
+                (error) => {
+                    logger.error(error);
+                }
+            );;
     },
 
     trackFocusEvent: function(context) {
