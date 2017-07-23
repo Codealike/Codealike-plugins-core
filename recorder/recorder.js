@@ -46,7 +46,7 @@ var Recorder = {
     isLastEventPropagating: function(event) {
         return (
             this.lastEvent !== null
-            && event.activityType === this.lastEvent.activityType
+            && event.type === this.lastEvent.type
             && event.file === this.lastEvent.file
             && event.line === this.lastEvent.line
         );
@@ -55,7 +55,7 @@ var Recorder = {
     isLastStatePropagating: function(state) {
         return (
             this.lastState !== null
-            && state.activityType === this.lastState.activityType
+            && state.type === this.lastState.type
         )
     },
 
