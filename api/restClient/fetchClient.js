@@ -69,7 +69,7 @@ var RestClient = {
                 .then(r => handleResponse(r))
                 .then(
                     (result) => resolve(result), 
-                    (error) => reject(result)
+                    (error) => reject(error)
                 )
                 .catch(error => reject(error));
         });
