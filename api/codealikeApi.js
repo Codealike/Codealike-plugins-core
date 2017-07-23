@@ -5,7 +5,13 @@ var configuration = require('../configuration').Configuration;
 var client = require('./restClient/fetchClient').RestClient;
 
 var Api = {
+
+    /*
+     *  clientId:
+     *  Client Id identifies the client using the api { atom / vscode / others... }
+     */
     clientId: null,
+
     userId: null,
     token: null,
     isAuthenticated: false,
@@ -27,6 +33,7 @@ var Api = {
 
     dispose: function() {
         this.isInitialized = false;
+        this.clientId = null;
         
         logger.info('Codealike api disposed');
     },
@@ -209,6 +216,22 @@ var Api = {
             private DateTime batchStart;
             private DateTime batchEnd;
         */
+        // save reference for inner execution
+        let that = this;
+
+        // return authentication promise
+        return new Promise(
+            function(resolve, reject) {
+                // execute request to authenticate the user
+                client.executePost(that.clientId, `activity`, that.userId, that.token, activityInfo)
+                    .then((result) => { 
+                        resolve(result);
+                    })
+                    .catch((error) => { 
+                        reject(error);
+                     });
+            }
+        );
     }
 }
 
