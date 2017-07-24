@@ -15,6 +15,8 @@ var Codealike = {
     isTracking: false,
     flushInterval: null,
     idleCheckInterval: null,
+    instanceId: '',
+    instancePath: null,
 
     /*
      *  currentProject:
@@ -24,6 +26,26 @@ var Codealike = {
      *  { projectId: <UUID>, projectName: <string> }
      */
     currentProject: null,
+
+    ensurePathExists(path) {
+        // ensure log and trace paths exists
+        if (!fs.existsSync(path)) {
+            fs.mkdirSync(path);
+        }
+    },
+
+    createRequiredPaths(clientId, instanceId) {
+        let basePath = path.join(os.homedir(), 'codealike');
+        this.ensurePathExists(basePath);
+
+        let clientPath = path.join(basePath, clientId);
+        this.ensurePathExists(clientPath);
+
+        let instancePath = path.join(clientPath, instanceId);
+        this.ensurePathExists(instancePath);
+
+        this.instancePath = instancePath;
+    },
 
     /*
      *  initialize:
@@ -37,6 +59,15 @@ var Codealike = {
         if (clientId == null)
             throw new Error('Codealike configuration should contain a client Id');
 
+        // initialize instance value
+        this.instanceId = moment().unix().toString();
+
+        // verify required folder structure exists
+        this.createRequiredPaths(clientId, this.instanceId);
+
+        // initialize logger
+        logger.initialize(this.instancePath);
+
         // initialize api
         api.initialize(clientId);
 
@@ -45,9 +76,6 @@ var Codealike = {
 
         // set initialized flag as true
         this.isInitialized = true;
-        
-        // log initialized finished
-        logger.info('Codealike initialized');
     },
 
     /*
@@ -70,8 +98,8 @@ var Codealike = {
         this.isInitialized = false;
         this.isConfigured = false;
 
-        // log disposed finished
-        logger.info('Codealike disposed');
+        // dispose logger
+        logger.dispose();
     },
 
     /*
@@ -81,6 +109,9 @@ var Codealike = {
      *  further requests in users name (by keeping user authentication info).
      */
     connect(userToken) {
+        if (!this.isInitialized)
+            throw new Error("Codealike should be initialized before used");
+
         return api.authenticate(userToken);
     },
 
@@ -91,6 +122,9 @@ var Codealike = {
      *  client and user id.
      */
     getProfile() {
+        if (!this.isInitialized)
+            throw new Error("Codealike should be initialized before used");
+
         return api.getProfile();
     },
 
@@ -101,6 +135,9 @@ var Codealike = {
      *  Codealike instance should be safe for disposing after this mathod.
      */
     disconnect() {
+        if (!this.isInitialized)
+            throw new Error("Codealike should be initialized before used");
+
         // if tracking, stop doing that
         this.stopTracking();
 
@@ -117,6 +154,9 @@ var Codealike = {
      *  4- if registered save to configuration file
      */
     configure(projectFolderPath) {
+        if (!this.isInitialized)
+            throw new Error("Codealike should be initialized before used");
+
         return new Promise(function(resolve, reject) {
             // generate codealike json configuration file path
             let codealikeProjectFile = path.join(projectFolderPath, 'codealike.json');
@@ -188,7 +228,7 @@ var Codealike = {
         this.trackSystemState(workspaceStartTime);
         this.trackOpenSolutionEvent(workspaceStartTime);
 
-        this.flushInterval = setInterval(this.flushData, 10000);
+        this.flushInterval = setInterval(this.flushData, 300000);
         this.idleCheckInterval = setInterval(this.checkIdle, 30000);
 
         logger.info('Codealike started tracking');
@@ -239,12 +279,18 @@ var Codealike = {
         // gets data to be sent to the server
         var dataToSend = recorder.getLastBatch();
 
+        if (dataToSend.events.length === 0 && dataToSend.states.length === 0) {
+            logger.info('No tracked data to send is available');
+            return;
+        }
+
+        // generate data package to be sent to the server
         let data = {
             machine: os.hostname(),
             client: api.clientId,
             solutionId: Codealike.currentProject.projectId,
             batchId: uuidv1(),
-            instance: '1774775763',
+            instance: this.instanceId,
             projects: [
                 { 
                     projectId: Codealike.currentProject.projectId,
@@ -286,16 +332,16 @@ var Codealike = {
             })
         }
 
-        logger.info(data);
+        // try to send data to server
         api.postActivity(data)
             .then(
                 (result) => {
-                    logger.info(result);
+                    logger.trace("Data successfully sent to server", data);
                 },
                 (error) => {
-                    logger.error(error);
+                    logger.trace("Data not sent to server", data);
                 }
-            );;
+            );
     },
 
     trackFocusEvent: function(context) {
