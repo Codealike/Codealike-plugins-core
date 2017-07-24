@@ -77,7 +77,7 @@ describe('Codealike Tracker', function() {
         
         codealike.startTracking({ projectId: 'test-project'});
 
-        this.clock.tick(20000);
+        this.clock.tick(600000);
 
         assert.equal(2, codealike.flushData.callCount, 'Flush data should be called twice');
         this.clock.restore();
