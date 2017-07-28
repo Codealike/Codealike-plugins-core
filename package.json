@@ -1,5 +1,5 @@
 {
-  "name": "codealike-core",
+  "name": "@codealike/codealike-core",
   "version": "0.0.1",
   "description": "Codealike core",
   "main": "codealike.js",
@@ -11,14 +11,14 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "istanbul": "^0.4.5",
-    "lodash-node": "^3.10.2",
     "mocha": "^3.2.0",
-    "sinon": "^1.17.7",
-    "node-fetch": "^1.7.1"
+    "sinon": "^1.17.7"
   },
   "dependencies": {
+    "lodash-node": "^3.10.2",
     "moment": "^2.18.1",
     "uuid": "^3.1.0",
-    "winston": "^2.3.1"
+    "winston": "^2.3.1",
+    "node-fetch": "^1.7.1"
   }
 }
