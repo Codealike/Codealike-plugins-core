@@ -44,8 +44,16 @@ function handleResponse(response) {
 }
 
 var RestClient = {
+    clientId: null,
+    apiUrl: null,
+
+    initialize: (clientId, apiUrl) => {
+        this.clientId = clientId;
+        this.apiUrl = apiUrl;
+    },
+
     executeGet: (clientId, route, userId, userToken) => {
-        let url = `${API_URL}/${route}`;
+        let url = `${this.apiUrl}/${route}`;
         let config = getRequestConfig('GET', clientId, userId, userToken);
         
         return new Promise(
@@ -60,7 +68,7 @@ var RestClient = {
         });
     },
     executePost: (clientId, route, userId, userToken, body) => {
-        let url = `${API_URL}/${route}`;
+        let url = `${this.apiUrl}/${route}`;
         let config = getRequestConfig('POST', clientId, userId, userToken, body);
         
         return new Promise(

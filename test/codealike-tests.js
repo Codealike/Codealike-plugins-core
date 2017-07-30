@@ -17,7 +17,7 @@ describe('Codealike initialization', function() {
 
 describe('Codealike Tracker', function() {
     beforeEach('Mock console routines', function() {
-        codealike.initialize('defaultClient');
+        codealike.initialize({ clientId: 'testClient' });
     });
 
     afterEach('Restore console routines', function() {

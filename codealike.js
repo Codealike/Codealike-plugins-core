@@ -1,5 +1,6 @@
 'use strict';
 
+var CodealikeConfiguration = require('./configuration');
 var logger = require('./logger/logger').Logger;
 var recorder = require('./recorder/recorder').Recorder;
 var activityType = require('./types/activityType').ActivityType;
@@ -11,6 +12,7 @@ const os = require('os');
 const moment = require('moment');
 
 var Codealike = {
+    configuration: null,
     isInitialized: false,
     isTracking: false,
     flushInterval: null,
@@ -54,22 +56,24 @@ var Codealike = {
      *  Api initialization requires a 'cliendId' to identificate requests 
      *  in name of 'client'
      */
-    initialize: function(clientId) {
-        // client identificator should be provided to configure codealike instance
-        if (clientId == null)
-            throw new Error('Codealike configuration should contain a client Id');
+    initialize: function(clientConfiguration) {
+        if (!clientConfiguration || !clientConfiguration.clientId)
+            throw new Error("Codealike configuration should contain a client Id");
+
+        // merge client configuration with basic configuration
+        this.configuration = CodealikeConfiguration.merge(clientConfiguration);
 
         // initialize instance value
         this.instanceId = moment().unix().toString();
 
         // verify required folder structure exists
-        this.createRequiredPaths(clientId, this.instanceId);
+        this.createRequiredPaths(this.configuration.clientId, this.instanceId);
 
         // initialize logger
         logger.initialize(this.instancePath);
 
         // initialize api
-        api.initialize(clientId);
+        api.initialize(this.configuration);
 
         // initialize recorder
         recorder.initialize();
@@ -228,8 +232,8 @@ var Codealike = {
         this.trackSystemState(workspaceStartTime);
         this.trackOpenSolutionEvent(workspaceStartTime);
 
-        this.flushInterval = setInterval(this.flushData, 300000);
-        this.idleCheckInterval = setInterval(this.checkIdle, 30000);
+        this.flushInterval = setInterval(this.flushData, this.configuration.flushInterval);
+        this.idleCheckInterval = setInterval(this.checkIdle, this.configuration.idleCheckInterval);
 
         logger.info('Codealike started tracking');
     },
@@ -261,7 +265,7 @@ var Codealike = {
         else {
             var currentTime = new Date();
             var elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime);
-            if (elapsedFromLastEventInSeconds >= 60000) {
+            if (elapsedFromLastEventInSeconds >= CodealikeConfiguration.settings.idleMaxPeriod) {
                 recorder.recordState({
                     type: activityType.Idle,
                     start: currentTime

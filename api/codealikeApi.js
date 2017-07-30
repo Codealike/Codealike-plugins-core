@@ -17,13 +17,16 @@ var Api = {
     isAuthenticated: false,
     isInitialized: false,
 
-    initialize: function(clientId = null) {
+    initialize: function(configuration) {
         // client identificator should be provided to configure codealike instance
-        if (clientId === null)
+        if (!configuration || !configuration.clientId)
             throw new Error('Codealike api initialization requires a client Id');
         
         // stores client identificator for api calls
-        this.clientId = clientId;
+        this.clientId = configuration.clientId;
+
+        // initializes client with server url
+        client.initialize(configuration.clientId, configuration.apiUrl);
 
         // set initialized flag as true
         this.isInitialized = true;
