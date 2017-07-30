@@ -294,6 +294,7 @@ var Codealike = {
             client: api.clientId,
             solutionId: Codealike.currentProject.projectId,
             batchId: uuidv1(),
+            extension: this.configuration.clientVersion,
             instance: this.instanceId,
             projects: [
                 { 
