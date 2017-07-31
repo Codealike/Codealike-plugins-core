@@ -1,6 +1,6 @@
 'use strict';
 
-var CodealikeConfiguration = require('./configuration');
+var configuration = require('./configuration');
 var logger = require('./logger/logger').Logger;
 var recorder = require('./recorder/recorder').Recorder;
 var activityType = require('./types/activityType').ActivityType;
@@ -12,7 +12,6 @@ const os = require('os');
 const moment = require('moment');
 
 var Codealike = {
-    configuration: null,
     isInitialized: false,
     isTracking: false,
     flushInterval: null,
@@ -37,7 +36,7 @@ var Codealike = {
     },
 
     createRequiredPaths(clientId, instanceId) {
-        let basePath = path.join(os.homedir(), 'codealike');
+        let basePath = path.join(os.homedir(), '.codealike');
         this.ensurePathExists(basePath);
 
         let clientPath = path.join(basePath, clientId);
@@ -54,32 +53,52 @@ var Codealike = {
      *  Initialize process should configure api and recorder instances
      *  to be prepared to connect and start tracking if required.
      *  Api initialization requires a 'cliendId' to identificate requests 
-     *  in name of 'client'
+     *  in name of 'client' and 'clientVersion'.
      */
-    initialize: function(clientConfiguration) {
-        if (!clientConfiguration || !clientConfiguration.clientId)
-            throw new Error("Codealike configuration should contain a client Id");
+    initialize: function(clientId, clientVersion) {
+        if (!clientId)
+            throw new Error("Codealike initialization requires a client Id'");
 
-        // merge client configuration with basic configuration
-        this.configuration = CodealikeConfiguration.merge(clientConfiguration);
+        if (!clientVersion)
+            throw new Error("Codealike initialization requires a client Version");
 
-        // initialize instance value
-        this.instanceId = moment().unix().toString();
+        // initialize instance value as new timestamp
+        let instanceId = moment().unix().toString();
 
         // verify required folder structure exists
-        this.createRequiredPaths(this.configuration.clientId, this.instanceId);
+        this.createRequiredPaths(clientId, instanceId);
+
+        // initialize codealike configuration and load global settings
+        configuration.initialize(clientId, clientVersion, instanceId);
+        configuration.loadGlobalSettings();
 
         // initialize logger
         logger.initialize(this.instancePath);
 
         // initialize api
-        api.initialize(this.configuration);
+        api.initialize(clientId);
 
         // initialize recorder
         recorder.initialize();
 
         // set initialized flag as true
         this.isInitialized = true;
+
+        logger.info('Codealike initialized');
+    },
+
+    hasUserToken: function() {
+        return (configuration.globalSettings.userToken != null);
+    },
+
+    getUserToken: function() {
+        return configuration.globalSettings.userToken;
+    },
+
+    setUserToken: function(userToken) {
+        configuration.setUserToken(userToken);
+        configuration.savelGlobalSettings();
+        logger.info(`Codealike user token set to ${userToken}`);
     },
 
     /*
@@ -102,6 +121,8 @@ var Codealike = {
         this.isInitialized = false;
         this.isConfigured = false;
 
+        logger.info(`Codealike disposed`);    
+
         // dispose logger
         logger.dispose();
     },
@@ -112,11 +133,13 @@ var Codealike = {
      *  If authenticated, api should be configured to be able to perform
      *  further requests in users name (by keeping user authentication info).
      */
-    connect(userToken) {
+    connect() {
         if (!this.isInitialized)
             throw new Error("Codealike should be initialized before used");
 
-        return api.authenticate(userToken);
+        logger.info(`Codealike is connecting`);    
+
+        return api.authenticate(configuration.globalSettings.userToken);
     },
 
     /*
@@ -147,6 +170,8 @@ var Codealike = {
 
         // clear api connection data
         api.disconnect();
+
+        logger.info(`Codealike is disconnected`);    
     },
 
     /*
@@ -232,8 +257,8 @@ var Codealike = {
         this.trackSystemState(workspaceStartTime);
         this.trackOpenSolutionEvent(workspaceStartTime);
 
-        this.flushInterval = setInterval(this.flushData, this.configuration.flushInterval);
-        this.idleCheckInterval = setInterval(this.checkIdle, this.configuration.idleCheckInterval);
+        this.flushInterval = setInterval(this.flushData, configuration.globalSettings.flushInterval);
+        this.idleCheckInterval = setInterval(this.checkIdle, configuration.globalSettings.idleCheckInterval);
 
         logger.info('Codealike started tracking');
     },
@@ -265,7 +290,7 @@ var Codealike = {
         else {
             var currentTime = new Date();
             var elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime);
-            if (elapsedFromLastEventInSeconds >= CodealikeConfiguration.settings.idleMaxPeriod) {
+            if (elapsedFromLastEventInSeconds >= configuration.globalSettings.idleMaxPeriod) {
                 recorder.recordState({
                     type: activityType.Idle,
                     start: currentTime
@@ -291,11 +316,11 @@ var Codealike = {
         // generate data package to be sent to the server
         let data = {
             machine: os.hostname(),
-            client: api.clientId,
+            client: configuration.instanceSettings.clientId,
             solutionId: Codealike.currentProject.projectId,
             batchId: uuidv1(),
-            extension: this.configuration.clientVersion,
-            instance: this.instanceId,
+            extension: configuration.instanceSettings.clientVersion,
+            instance: configuration.instanceSettings.instanceId,
             projects: [
                 { 
                     projectId: Codealike.currentProject.projectId,

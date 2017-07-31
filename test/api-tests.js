@@ -6,7 +6,7 @@ var sinon = require('sinon');
 var codealikeApi = require('../api/codealikeApi').Api
 var logger = require('../logger/logger').Logger;
 
-describe('Codealike initialization', function() {
+describe('Codealike api initialization', function() {
     it('Initialization configuration', function() {
         expect(() => codealikeApi.initialize())
             .to.throw('Codealike api initialization requires a client Id');
@@ -16,7 +16,7 @@ describe('Codealike initialization', function() {
 
 describe('Authentication', function() {
     it('Succesfully authenticate', done => {
-        codealikeApi.initialize({ clientId: 'testClient', apiUrl: 'https://codealike.com/api/v2'});
+        codealikeApi.initialize('testClient');
 
         codealikeApi
             .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f6')
@@ -30,7 +30,7 @@ describe('Authentication', function() {
     });
 
     it('fail by parameter', done => {
-        codealikeApi.initialize({ clientId: 'testClient'});
+        codealikeApi.initialize('testClient');
 
         codealikeApi
             .authenticate('invalidtoken')
@@ -51,7 +51,7 @@ describe('Authentication', function() {
     });
 
     it('not authenticate', done => {
-        codealikeApi.initialize({ clientId: 'testClient'});
+        codealikeApi.initialize('testClient');
 
         codealikeApi
             .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f0')
@@ -73,7 +73,7 @@ describe('Authentication', function() {
 
 describe('Get profile', function() {
     it('Succesfully get profile', done => {
-        codealikeApi.initialize({ clientId: 'testClient', apiUrl: 'https://codealike.com/api/v2'});
+        codealikeApi.initialize('testClient');
 
         // manually configure valid authentication information
         codealikeApi.isAuthenticated = true;
@@ -95,7 +95,7 @@ describe('Get profile', function() {
     });
 
     it('Not authenticated', done => {
-        codealikeApi.initialize({ clientId: 'testClient'});
+        codealikeApi.initialize('testClient');
 
         codealikeApi
             .getProfile()

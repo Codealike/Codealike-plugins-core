@@ -1,7 +1,6 @@
 var fetch = require('node-fetch');
 var logger = require('../../logger/logger').Logger;
 
-const API_URL = "https://codealike.com/api/v2";
 const X_EAUTH_CLIENT_HEADER = "X-Eauth-Client";
 const X_EAUTH_TOKEN_HEADER = "X-Api-Token";
 const X_EAUTH_IDENTITY_HEADER = "X-Api-Identity";

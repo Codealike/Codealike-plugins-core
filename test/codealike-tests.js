@@ -11,13 +11,13 @@ var api = require('../api/codealikeApi').Api;
 describe('Codealike initialization', function() {
     it('Initialization configuration', function() {
         expect(() => codealike.initialize())
-            .to.throw('Codealike configuration should contain a client Id');
+            .to.throw('Codealike initialization requires a client Id');
     });
 });
 
 describe('Codealike Tracker', function() {
     beforeEach('Mock console routines', function() {
-        codealike.initialize({ clientId: 'testClient' });
+        codealike.initialize('testClient', '0.0.1');
     });
 
     afterEach('Restore console routines', function() {

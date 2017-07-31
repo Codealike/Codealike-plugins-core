@@ -1,7 +1,7 @@
 'use strict'
 
+var configuration = require('../configuration');
 var logger = require('../logger/logger').Logger;
-var configuration = require('../configuration').Configuration;
 var client = require('./restClient/fetchClient').RestClient;
 
 var Api = {
@@ -17,16 +17,16 @@ var Api = {
     isAuthenticated: false,
     isInitialized: false,
 
-    initialize: function(configuration) {
+    initialize: function(clientId) {
         // client identificator should be provided to configure codealike instance
-        if (!configuration || !configuration.clientId)
+        if (!clientId)
             throw new Error('Codealike api initialization requires a client Id');
         
         // stores client identificator for api calls
-        this.clientId = configuration.clientId;
+        this.clientId = clientId;
 
         // initializes client with server url
-        client.initialize(configuration.clientId, configuration.apiUrl);
+        client.initialize(clientId, configuration.globalSettings.apiUrl);
 
         // set initialized flag as true
         this.isInitialized = true;
