@@ -15,7 +15,9 @@ var Logger = {
         this.wlogger.info('Codealike logger started');
     },
     dispose: function() {
-        this.wlogger.info('Codealike logger finished');
+        // prevent issues when logger was not initialized
+        if (this.wlogger)
+            this.wlogger.info('Codealike logger finished');
     },
     info: function(message) {
         if (this.wlogger)
