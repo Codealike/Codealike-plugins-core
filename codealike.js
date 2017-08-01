@@ -92,7 +92,7 @@ var Codealike = {
     },
 
     getUserToken: function() {
-        return configuration.globalSettings.userToken;
+        return configuration.getUserToken();
     },
 
     setUserToken: function(userToken) {

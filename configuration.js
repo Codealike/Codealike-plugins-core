@@ -29,11 +29,6 @@ var Configuration = {
         instanceId: 0
     },
 
-    projectSettings: {
-        projectId: null,
-        projectName: null,
-    },
-
     initialize: function(clientId, clientVersion, instanceId) {
         // sets the codealike base path for logging and user settings and profile
         let basePath = path.join(os.homedir(), '.codealike');
@@ -93,18 +88,9 @@ var Configuration = {
         this.globalSettings.userToken = userToken;
     },
 
-    loadProjectSettings: function(projectFolderPath) {
-        let codealikeProjectFile = path.join(projectFolderPath, 'codealike.json');
-
-        if (fs.existsSync(codealikeProjectFile)) {
-            let existingConfiguration = JSON.parse(fs.readFileSync(codealikeProjectFile, 'utf8'));
-
-            if (existingConfiguration && existingConfiguration.projectId) {
-                this.settings.projectId = existingConfiguration.projectId;
-                this.settings.projectName = existingConfiguration.projectName;
-            }
-        }
-    },
+    getUserToken: function() {
+        return this.globalSettings.userToken;
+    }
 }
 
 module.exports = Configuration;
