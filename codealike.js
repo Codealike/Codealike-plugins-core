@@ -388,7 +388,7 @@ var Codealike = {
 
         recorder.recordState({
             projectId: this.currentProject.projectId,
-            type: activityType.Navigating,
+            type: activityType.Coding,
             start: new Date()
         });
 

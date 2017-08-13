@@ -68,7 +68,7 @@ var Recorder = {
         }
         else {
             // set the finalization of the last event
-            if (this.lastEvent) {
+            if (this.lastEvent && !this.lastEvent.end) {
                 this.lastEvent.end = new Date();
             }
 
@@ -92,8 +92,14 @@ var Recorder = {
         }
         else {
             // set the finalization of the last state
-            if (this.lastState) {
+            if (this.lastState && !this.lastState.end) {
                 this.lastState.end = new Date();
+            }
+
+            // if state changed, last event is finished for sure
+            if (this.lastEvent && !this.lastEvent.end) {
+                this.lastEvent.end = new Date();
+                this.lastEvent = null;
             }
 
             // adds the state to the current session
@@ -105,11 +111,15 @@ var Recorder = {
     },
 
     updateLastEvent: function() {
-        this.lastEvent.end = new Date();
+        if (this.lastEvent) {
+            this.lastEvent.end = new Date();
+        }
     },
 
     updateLastState: function() {
-        this.lastState.end = new Date();
+        if (this.lastState) {
+            this.lastState.end = new Date();
+        }
     }
 };
 

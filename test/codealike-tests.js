@@ -47,7 +47,7 @@ describe('Codealike Tracker', function() {
         codealike.trackFocusEvent({ file: 'f1.js' });
         codealike.trackSystemState({ file: 'f1.js' });
 
-        assert.equal(4, recorder.currentSession.states.length, 'Should recorded 1 state');
+        assert.equal(3, recorder.currentSession.states.length, 'Should recorded 3 state');
         assert.equal(3, recorder.currentSession.events.length, 'Should recorder 3 events');
     });
 
@@ -110,7 +110,7 @@ describe('Codealike Tracker', function() {
 
         var recordedBatch = recorder.getLastBatch();
 
-        assert.equal(4, recordedBatch.states.length, 'Should recorded 1 state');
+        assert.equal(3, recordedBatch.states.length, 'Should recorded 3 state');
         assert.equal(3, recordedBatch.events.length, 'Should recorder 3 events');
 
         codealike.stopTracking();
