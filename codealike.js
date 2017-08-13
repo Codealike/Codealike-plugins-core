@@ -457,6 +457,26 @@ var Codealike = {
         recorder.recordEvent(context);
 
         logger.info('Codealike Tracked Open Solution', context);
+    },
+
+    trackDebuggingState: function() {
+        if (!this.isInitialized)
+            throw new Error("Codealike should be initialized before used");
+
+        if (!this.isTracking)
+            return;
+
+        // generate event context
+        let context = {
+            projectId: this.currentProject.projectId,
+            type: activityType.Debugging,
+            start: new Date()
+        };
+
+        // record open solution event, started when workspace started
+        recorder.recordState(context);
+
+        logger.info('Codealike Tracked Debugging state', context);
     }
 };
 
