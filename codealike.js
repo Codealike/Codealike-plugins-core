@@ -374,6 +374,27 @@ var Codealike = {
             );
     },
 
+    updateOrChangeStateOnEvent: function(proposedNewState) {
+        var newState = proposedNewState;
+
+        // verify if status should be updated or changed
+        // this is because when debugging, focus or coding
+        // events must not change the current status.
+        // So, if last state was debugging, state should be
+        // just updated.
+        if (proposedNewState === activityType.Coding &&
+            recorder.lastState === activityType.Debugging) {
+            newState = activityType.Debugging;
+        }
+
+        // record status
+        recorder.recordState({
+            projectId: this.currentProject.projectId,
+            type: newState,
+            start: new Date()
+        });
+    },
+
     trackFocusEvent: function(context) {
         if (!this.isInitialized)
             throw new Error("Codealike should be initialized before used");
@@ -386,12 +407,10 @@ var Codealike = {
         context.type = activityType.DocumentFocus;
         context.start = new Date();
 
-        recorder.recordState({
-            projectId: this.currentProject.projectId,
-            type: activityType.Coding,
-            start: new Date()
-        });
+        // check whether or not state should be changed or updated
+        this.updateOrChangeStateOnEvent(activityType.Coding);
 
+        // record current event
         recorder.recordEvent(context);
 
         logger.info('Codealike Tracked Focus', context);
@@ -409,11 +428,10 @@ var Codealike = {
         context.type = activityType.DocumentEdit;
         context.start = new Date();
 
-        recorder.recordState({
-            type: activityType.Coding,
-            start: new Date()
-        });
+        // check whether or not state should be changed or updated
+        this.updateOrChangeStateOnEvent(activityType.Coding);
 
+        // record current event
         recorder.recordEvent(context);
 
         logger.info('Codealike Tracked Event', context);
@@ -470,6 +488,26 @@ var Codealike = {
         let context = {
             projectId: this.currentProject.projectId,
             type: activityType.Debugging,
+            start: new Date()
+        };
+
+        // record open solution event, started when workspace started
+        recorder.recordState(context);
+
+        logger.info('Codealike Tracked Debugging state', context);
+    },
+
+    trackCodingState: function() {
+        if (!this.isInitialized)
+            throw new Error("Codealike should be initialized before used");
+
+        if (!this.isTracking)
+            return;
+
+        // generate event context
+        let context = {
+            projectId: this.currentProject.projectId,
+            type: activityType.Coding,
             start: new Date()
         };
 

@@ -45,18 +45,18 @@ var Recorder = {
 
     isLastEventPropagating: function(event) {
         return (
-            this.lastEvent !== null
-            && event.type === this.lastEvent.type
-            && event.file === this.lastEvent.file
-            && event.line === this.lastEvent.line
+            this.lastEvent !== null && 
+            event.type === this.lastEvent.type && 
+            event.file === this.lastEvent.file && 
+            event.line === this.lastEvent.line
         );
     },
 
     isLastStatePropagating: function(state) {
         return (
-            this.lastState !== null
-            && state.type === this.lastState.type
-        )
+            this.lastState !== null && 
+            state.type === this.lastState.type
+        );
     },
 
     recordEvent: function(event) {
