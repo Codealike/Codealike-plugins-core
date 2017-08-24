@@ -103,14 +103,13 @@ describe('Codealike Tracker', function() {
         this.clock = sinon.useFakeTimers();
         codealike.startTracking({ projectId: 'test-project'});
 
+        codealike.trackSystemState();
         codealike.trackCodingEvent({ file: 'f1.js '});
         codealike.trackFocusEvent({ file: 'f1.js' });
-        codealike.trackSystemState({ file: 'f1.js' });
-        codealike.trackSystemState({ file: 'f1.js' });
 
         var recordedBatch = recorder.getLastBatch();
 
-        assert.equal(3, recordedBatch.states.length, 'Should recorded 3 state');
+        assert.equal(2, recordedBatch.states.length, 'Should recorded 2 state');
         assert.equal(3, recordedBatch.events.length, 'Should recorder 3 events');
 
         codealike.stopTracking();
@@ -156,13 +155,13 @@ describe('Codealike Tracker', function() {
         // Timer: 120 - 118 secs inactive
         this.clock.tick(30000);
         assert.equal(activityType.Idle, recorder.lastState.type, 
-            'After 118 secs of inactivity (120 secs total - 4th. idle check) System state should steel be Idle');
+            'After 118 secs of inactivity (120 secs total - 4th. idle check) System state should still be Idle');
 
         // Timer 122 - 120 secs inactive
         this.clock.tick(2000);
         codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
         assert.equal(activityType.Coding, recorder.lastState.type, 
-            'After 118 secs of inactivity (120 secs total - 4th. idle check) Coding state should steel be Idle');
+            'After 118 secs of inactivity (120 secs total - 4th. idle check) Coding state should have changed to Coding');
 
         var recordedBatch = recorder.getLastBatch();
         assert.equal(4, recordedBatch.states.length, 'Should recorded 2 state');

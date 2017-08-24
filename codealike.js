@@ -19,6 +19,13 @@ var Codealike = {
     instanceId: '',
     instancePath: null,
 
+    /* 
+     *  stateBeforeIdle:
+     *  In case of going idle, we have to save the current state
+     *  so when leaving iddle state, we can resume last known state.
+     */
+    stateBeforeIdle: null,
+
     /*
      *  currentProject:
      *  CurrentProject has the information about the current project being tracked
@@ -291,6 +298,11 @@ var Codealike = {
             var currentTime = new Date();
             var elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime);
             if (elapsedFromLastEventInSeconds >= configuration.globalSettings.idleMaxPeriod) {
+                
+                // save last state before going iddle
+                Codealike.stateBeforeIdle = recorder.lastState.type;
+
+                // record idle state
                 recorder.recordState({
                     type: activityType.Idle,
                     start: currentTime
@@ -377,14 +389,23 @@ var Codealike = {
     updateOrChangeStateOnEvent: function(proposedNewState) {
         var newState = proposedNewState;
 
-        // verify if status should be updated or changed
-        // this is because when debugging, focus or coding
-        // events must not change the current status.
-        // So, if last state was debugging, state should be
-        // just updated.
-        if (proposedNewState === activityType.Coding &&
-            recorder.lastState === activityType.Debugging) {
-            newState = activityType.Debugging;
+        // if there is an state before idle, it means 
+        // we left idle state with current event and 
+        // we have to resume that state
+        if (this.stateBeforeIdle != null) {
+            newState = this.stateBeforeIdle;
+            this.stateBeforeIdle = null;
+        }
+        else {
+            // verify if status should be updated or changed
+            // this is because when debugging, focus or coding
+            // events must not change the current status.
+            // So, if last state was debugging, state should be
+            // just updated.
+            if (proposedNewState === activityType.Coding &&
+                recorder.lastState.type === activityType.Debugging) {
+                newState = activityType.Debugging;
+            }
         }
 
         // record status
