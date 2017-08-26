@@ -363,11 +363,11 @@ var Codealike = {
                     end: endTime,
                     duration: duration,
                     context: {
-                        member : '',
+                        member : event.member || '',
                         namespace : '',
                         projectId : event.projectId,
                         file : event.file,
-                        class : '',
+                        class : event.className || '',
                         line: event.line
                     }
                 }
@@ -505,6 +505,9 @@ var Codealike = {
         if (!this.isTracking)
             return;
 
+        // when state is reported, state before idle should be cleaned up
+        this.stateBeforeIdle = null;
+
         // generate event context
         let context = {
             projectId: this.currentProject.projectId,
@@ -525,6 +528,9 @@ var Codealike = {
         if (!this.isTracking)
             return;
 
+        // when state is reported, state before idle should be cleaned up
+        this.stateBeforeIdle = null;
+
         // generate event context
         let context = {
             projectId: this.currentProject.projectId,
@@ -535,7 +541,7 @@ var Codealike = {
         // record open solution event, started when workspace started
         recorder.recordState(context);
 
-        logger.info('Codealike Tracked Debugging state', context);
+        logger.info('Codealike Tracked Coding state', context);
     }
 };
 
