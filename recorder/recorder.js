@@ -64,7 +64,7 @@ var Recorder = {
             throw new Error("Recorder should be initialized before used");
 
         if (this.isLastEventPropagating(event)) {
-            this.updateLastEvent();
+            this.updateLastEvent(event);
         }
         else {
             // set the finalization of the last event
@@ -110,8 +110,16 @@ var Recorder = {
         }
     },
 
-    updateLastEvent: function() {
+    updateLastEvent: function(event) {
         if (this.lastEvent) {
+            // when updating an event, we also
+            // update context information as 
+            // the last event should be the most complete
+            this.lastEvent.member = event.member;
+            this.lastEvent.className = event.className;
+            this.lastEvent.namespace = event.namespace;
+
+            // also update last finishing time as of now
             this.lastEvent.end = new Date();
         }
     },

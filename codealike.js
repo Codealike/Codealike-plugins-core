@@ -364,7 +364,7 @@ var Codealike = {
                     duration: duration,
                     context: {
                         member : event.member || '',
-                        namespace : '',
+                        namespace : event.namespace || '',
                         projectId : event.projectId,
                         file : event.file,
                         class : event.className || '',
