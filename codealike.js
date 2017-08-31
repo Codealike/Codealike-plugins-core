@@ -350,12 +350,13 @@ var Codealike = {
                     start: startTime,
                     end: endTime,
                     duration: duration,
-                }
+                };
             }),
             events: dataToSend.events.map(event => {
                 let startTime = moment(event.start).format();
                 let endTime = moment(event.end).format();
                 let duration = moment.utc(moment(event.end,"DD/MM/YYYY HH:mm:ss").diff(moment(event.start,"DD/MM/YYYY HH:mm:ss"))).format("HH:mm:ss");
+
                 return {
                     parentId: event.projectId,
                     type: event.type,
@@ -370,7 +371,7 @@ var Codealike = {
                         class : event.className || '',
                         line: event.line
                     }
-                }
+                };
             })
         }
 
