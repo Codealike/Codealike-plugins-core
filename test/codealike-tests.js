@@ -116,6 +116,46 @@ describe('Codealike Tracker', function() {
         this.clock.restore();
     });
 
+    it('Recover last state before iddle', function() {
+        this.clock = sinon.useFakeTimers();
+        var checkIdleSpy = sinon.spy(codealike, "checkIdle");
+
+        codealike.startTracking({ projectId: 'test-project'});
+
+        // Timer: 0
+        codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
+        this.clock.tick(60000);
+
+        // after a complete idle max period, state should go iddle
+        assert.equal(2, checkIdleSpy.callCount, 'Idle verification should be called twice');
+        assert.equal(activityType.Idle, recorder.lastState.type, 
+            'After 60 secs of inactivity (60 secs total - 2nd idle check) Idle state should prevail');
+        assert.equal(activityType.Coding, codealike.stateBeforeIdle, 'Coding state should been saved as before idle state');
+
+        codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
+        assert.equal(activityType.Coding, recorder.lastState.type, 
+            'When getting back from idle, status should be coding');
+        assert.isNull(codealike.stateBeforeIdle, 'State before idle should been cleaned');
+
+        // same as before but debugging
+        codealike.trackDebuggingState();
+        this.clock.tick(60000);
+        assert.equal(4, checkIdleSpy.callCount, 'Idle verification should be called four times');
+        assert.equal(activityType.Idle, recorder.lastState.type, 
+            'After 60 secs of inactivity (120 secs total - 4nd idle check) Idle state should prevail');
+        assert.equal(activityType.Debugging, codealike.stateBeforeIdle, 'Debugging state should been saved as before idle state');
+
+        codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
+        assert.equal(activityType.Debugging, recorder.lastState.type, 
+            'When getting back from idle, status should be debugging');
+        assert.isNull(codealike.stateBeforeIdle, 'State before idle should been cleaned');
+
+        codealike.stopTracking();
+        
+        codealike.checkIdle.restore();
+        this.clock.restore();
+    });
+
     it('Idle verification', function() {
         this.clock = sinon.useFakeTimers();
 
