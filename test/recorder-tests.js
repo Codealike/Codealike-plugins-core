@@ -25,21 +25,41 @@ describe('Codealike Recorder', function() {
 
         recorder.initialize();
 
-        var event = {
+        const firstEventStart = new Date();
+        recorder.recordEvent({
             file: 'f1.js',
             line: 12,
-            start: new Date(),
-        };
-
-        recorder.recordEvent(event);
+            start: firstEventStart,
+        });
 
         this.clock.tick(2000);
 
-        recorder.recordEvent(event);
+        recorder.recordEvent({
+            file: 'f1.js',
+            line: 12,
+            start: new Date(),
+        });
 
-        assert.equal(1, recorder.currentSession.events.length, 'Recorder should updated last event and not created a new one');
-        assert.equal(recorder.lastEvent, recorder.currentSession.events[0], 'Recorder last event should be equal to last event in session');
-        assert.equal(2000, recorder.lastEvent.end - recorder.lastEvent.start, 'Last event should have been updated by time elapsed');
+        this.clock.tick(6000);
+
+        recorder.recordEvent({
+            file: 'f2.js',
+            line: 1,
+            start: new Date(),
+        });
+
+        this.clock.tick(4000);
+
+        recorder.recordEvent({
+            file: 'f3.js',
+            line: 2,
+            start: new Date(),
+        });
+
+        assert.equal(3, recorder.currentSession.events.length, 'Recorder should updated last event and not created a new one');
+        assert.equal(recorder.lastEvent, recorder.currentSession.events[2], 'Recorder last event should be equal to last event in session');
+        assert.equal(8000, (recorder.currentSession.events[0].end - recorder.currentSession.events[0].start), 'First event should been updated for threshold as second event happened');
+        assert.equal(4000, (recorder.currentSession.events[1].end - recorder.currentSession.events[1].start), 'Last event should have been updated by time elapsed');
 
         this.clock.restore();
     });

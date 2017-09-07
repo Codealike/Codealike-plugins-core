@@ -43,6 +43,9 @@ var Recorder = {
         return sessionToFlush;
     },
 
+    /*
+     * 
+     */
     isLastEventPropagating: function(event) {
         return (
             this.lastEvent !== null && 
@@ -52,6 +55,9 @@ var Recorder = {
         );
     },
 
+    /*
+     * 
+     */
     isLastStatePropagating: function(state) {
         return (
             this.lastState !== null && 
@@ -59,6 +65,36 @@ var Recorder = {
         );
     },
 
+    /*
+     *  updateEndableEntityAsOfNowIfRequired:
+     *  This method checks if last event/state should be provided
+     *  with some spare time given a change. We expect an event
+     *  to be a continuous stream of items, if possible without 
+     *  blank periods of time in between.
+     */
+    updateEndableEntityAsOfNowIfRequired: function(endableEntity) {
+        // if entity is null, nothing to do here
+        if (!endableEntity)
+            return;
+
+        // if entity has no end, no choice 
+        // but to set it ended now
+        if (!endableEntity.end) {
+            endableEntity.end = new Date();
+        }
+        else {
+            // finally, end of entity was no so long ago
+            // let's give it a change to be wild!!!
+            var currentTime = new Date();
+            if ((currentTime - endableEntity.end) <= 7000) {
+                endableEntity.end = new Date();
+            }
+        }
+    },
+
+    /*
+     * 
+     */
     recordEvent: function(event) {
         if (!this.isInitialized)
             throw new Error("Recorder should be initialized before used");
@@ -68,9 +104,7 @@ var Recorder = {
         }
         else {
             // set the finalization of the last event
-            if (this.lastEvent && !this.lastEvent.end) {
-                this.lastEvent.end = new Date();
-            }
+            this.updateEndableEntityAsOfNowIfRequired(this.lastEvent);
 
             // adds the event to the current session
             this.currentSession.events.push(event);
@@ -83,6 +117,9 @@ var Recorder = {
         this.lastEventTime = new Date();
     },
 
+    /*
+     * 
+     */
     recordState: function(state) {
         if (!this.isInitialized)
             throw new Error("Recorder should be initialized before used");
@@ -92,15 +129,10 @@ var Recorder = {
         }
         else {
             // set the finalization of the last state
-            if (this.lastState && !this.lastState.end) {
-                this.lastState.end = new Date();
-            }
+            this.updateEndableEntityAsOfNowIfRequired(this.lastState);
 
             // if state changed, last event is finished for sure
-            if (this.lastEvent && !this.lastEvent.end) {
-                this.lastEvent.end = new Date();
-                this.lastEvent = null;
-            }
+            this.updateEndableEntityAsOfNowIfRequired(this.lastEvent);
 
             // adds the state to the current session
             this.currentSession.states.push(state);
