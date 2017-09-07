@@ -342,7 +342,7 @@ var Codealike = {
             states: dataToSend.states.map(state => {
                 let startTime = moment(state.start).format();
                 let endTime = moment(state.end).format();
-                let duration = moment.utc(moment(state.end,"DD/MM/YYYY HH:mm:ss").diff(moment(state.start,"DD/MM/YYYY HH:mm:ss"))).format("HH:mm:ss");
+                let duration = moment.utc(moment(state.end).diff(moment(state.start))).format("HH:mm:ss");
 
                 return {
                     parentId: state.projectId,
@@ -355,7 +355,7 @@ var Codealike = {
             events: dataToSend.events.map(event => {
                 let startTime = moment(event.start).format();
                 let endTime = moment(event.end).format();
-                let duration = moment.utc(moment(event.end,"DD/MM/YYYY HH:mm:ss").diff(moment(event.start,"DD/MM/YYYY HH:mm:ss"))).format("HH:mm:ss");
+                let duration = moment.utc(moment(event.end).diff(moment(event.start))).format("HH:mm:ss");
 
                 return {
                     parentId: event.projectId,
