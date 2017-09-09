@@ -5,3 +5,4 @@ coverage
 .vs/ProjectSettings.json
 .vs/slnx.sqlite
 .vs/VSWorkspaceState.json
+test/trackingTestResult.txt
