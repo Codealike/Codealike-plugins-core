@@ -22,9 +22,13 @@ const scriptToRun = [
     { "secondsElapsed": 1, "eventType": activityType.DocumentEdit, context: { "file": "file1", "line": 1 } },
     { "secondsElapsed": 3, "eventType": activityType.DocumentEdit, context: { "file": "file1", "line": 1 } },
     { "secondsElapsed": 2, "eventType": activityType.DocumentEdit, context: { "file": "file1", "line": 1 } },
-    { "secondsElapsed": 180, "eventType": activityType.Idle, context: { } },
-    { "secondsElapsed": 0, "eventType": activityType.DocumentFocus, context: { "file": "file1", "line": 1 } },
+    { "secondsElapsed": 180, "eventType": activityType.DocumentFocus, context: { "file": "file1", "line": 1 } },
     { "secondsElapsed": 20, "eventType": activityType.DocumentEdit, context: { "file": "file1", "line": 1 } },
+    
+    //{ "secondsElapsed": 0, "eventType": activityType.DocumentFocus, context: { "file": "file1", "line": 1 } },
+    //{ "secondsElapsed": 59, "eventType": activityType.DocumentFocus, context: { "file": "file1", "line": 1 } },
+    //{ "secondsElapsed": 59, "eventType": activityType.DocumentFocus, context: { "file": "file1", "line": 1 } },
+    //{ "secondsElapsed": 63, "eventType": activityType.DocumentFocus, context: { "file": "file1", "line": 1 } },
 ];
 
 describe('Codealike tracking', function() {

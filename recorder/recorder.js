@@ -31,14 +31,39 @@ var Recorder = {
         if (!this.isInitialized)
             throw new Error("Recorder should be initialized before used");
 
+        let currentTime = new Date();
+        
         // creates a copy of the current session
+        this.lastEvent = _.clone(this.lastEvent);
+        this.lastState = _.clone(this.lastState);
         var sessionToFlush = _.clone(this.currentSession);
+
+        // update last state and last event
+        // given they will be starting over again now
+        if (this.lastState) {
+            this.lastState.start = currentTime;
+            this.lastState.end = null;
+        }
+        if (this.lastEvent) {
+            this.lastEvent.start = currentTime;
+            this.lastEvent.end = null;
+        }
 
         // initializes an empty session for further tracking
         this.currentSession = {
           states: [],
           events: []
         };
+
+        // if there is any state, let's close it final state by now
+        if (sessionToFlush.states.length) {
+            sessionToFlush.states[sessionToFlush.states.length-1].end = currentTime;
+        }
+
+        // if there is any event, let's close it final event by now
+        if (sessionToFlush.events.length) {
+            sessionToFlush.events[sessionToFlush.events.length-1].end = currentTime;
+        }
 
         return sessionToFlush;
     },
