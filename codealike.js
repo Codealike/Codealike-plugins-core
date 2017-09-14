@@ -317,18 +317,16 @@ var Codealike = {
         }
     },
 
-    flushData: function() {
-        logger.info('Codealike is sending data');
-
+    getDataToFlush: function() {
         if (!recorder.isInitialized)
-            return;
+            return null;
 
         // gets data to be sent to the server
         var dataToSend = recorder.getLastBatch();
 
         if (dataToSend.events.length === 0 && dataToSend.states.length === 0) {
             logger.info('No tracked data to send is available');
-            return;
+            return null;
         }
 
         // generate data package to be sent to the server
@@ -348,8 +346,8 @@ var Codealike = {
             states: dataToSend.states.map(state => {
                 let startTime = moment(state.start).format();
                 let endTime = moment(state.end).format();
-                let duration = moment.utc(moment(state.end).diff(moment(state.start))).format("HH:mm:ss");
-
+                let duration = moment.utc(moment(state.end).diff(moment(state.start))).format("HH:mm:ss.SSS");
+                
                 return {
                     parentId: state.projectId,
                     type: state.type,
@@ -361,7 +359,7 @@ var Codealike = {
             events: dataToSend.events.map(event => {
                 let startTime = moment(event.start).format();
                 let endTime = moment(event.end).format();
-                let duration = moment.utc(moment(event.end).diff(moment(event.start))).format("HH:mm:ss");
+                let duration = moment.utc(moment(event.end).diff(moment(event.start))).format("HH:mm:ss.SSS");
 
                 return {
                     parentId: event.projectId,
@@ -380,6 +378,17 @@ var Codealike = {
                 };
             })
         }
+
+        return data;
+    },
+
+    flushData: function() {
+        logger.info('Codealike is sending data');
+
+        let data = this.getDataToFlush();
+
+        if (!data)
+            return;
 
         // try to send data to server
         api.postActivity(data)

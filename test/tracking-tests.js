@@ -40,6 +40,20 @@ describe('Codealike tracking', function() {
         codealike.dispose();
     });
 
+    it('Tracks activities for less than one second interactions', function() {
+        this.clock = sinon.useFakeTimers();
+
+        codealike.startTracking({ projectId: 'test-project'});
+        codealike.trackCodingEvent({ "file": "file1", "line": 1 });
+        this.clock.tick(600);
+        
+        let data = codealike.getDataToFlush();
+        assert.equal('00:00:00.600', data.events[1].duration, 'Events duration should be rounded up');
+        assert.equal('00:00:00.600', data.states[1].duration, 'States duration should be rounded up');
+
+        this.clock.restore();
+    });
+
     it('Tracking activity script should reflect expected log', done => {
         codealike.flushData = sinon.spy();
 
