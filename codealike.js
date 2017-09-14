@@ -10,6 +10,7 @@ var path = require('path');
 const uuidv1 = require('uuid/v1');
 const os = require('os');
 const moment = require('moment');
+const hostNameHelpers = require('./hostNameHelper');
 
 var Codealike = {
     isInitialized: false,
@@ -18,6 +19,7 @@ var Codealike = {
     idleCheckInterval: null,
     instanceId: '',
     instancePath: null,
+    hostFQDN: null,
 
     /* 
      *  stateBeforeIdle:
@@ -69,6 +71,18 @@ var Codealike = {
         if (!clientVersion)
             throw new Error("Codealike initialization requires a client Version");
 
+        // get the host name for currrent running environment
+        // try to get full name, if failed got for os hostname
+        Codealike.hostFQDN = os.hostname();
+        hostNameHelpers.getHostFQDN().then(
+            (hostname) => {
+                Codealike.hostFQDN = hostname;
+            },
+            (error) => {
+                // host name will default to os.hostname()
+            }
+        );
+
         // initialize instance value as new timestamp
         let instanceId = moment().unix().toString();
 
@@ -91,7 +105,7 @@ var Codealike = {
         // set initialized flag as true
         this.isInitialized = true;
 
-        logger.info('Codealike initialized');
+        logger.info('Codealike initialized for ' + Codealike.hostFQDN + ' with instance id ' + instanceId);
     },
 
     hasUserToken: function() {
@@ -331,7 +345,7 @@ var Codealike = {
 
         // generate data package to be sent to the server
         let data = {
-            machine: os.hostname(),
+            machine: Codealike.hostFQDN,
             client: configuration.instanceSettings.clientId,
             solutionId: Codealike.currentProject.projectId,
             batchId: uuidv1(),
