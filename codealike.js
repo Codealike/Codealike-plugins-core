@@ -18,8 +18,11 @@ var Codealike = {
     flushInterval: null,
     idleCheckInterval: null,
     instanceId: '',
-    instancePath: null,
+    instancePath: null, // path where current running instance related stuff is saved
+    localCachePath: null,
+    historyPath: null,
     hostFQDN: null,
+    filesPendingToBeFlushed: [],
 
     /* 
      *  stateBeforeIdle:
@@ -54,6 +57,14 @@ var Codealike = {
         let instancePath = path.join(clientPath, instanceId);
         this.ensurePathExists(instancePath);
 
+        let cachePath = path.join(basePath, 'cache');
+        this.ensurePathExists(cachePath);
+
+        let historyPath = path.join(basePath, 'history');
+        this.ensurePathExists(historyPath);
+
+        this.historyPath = historyPath;
+        this.cachePath = cachePath;
         this.instancePath = instancePath;
     },
 
@@ -110,6 +121,9 @@ var Codealike = {
 
         // set initialized flag as true
         this.isInitialized = true;
+
+        // verify if there are local files to send
+        this.loadFilesPendingToBeFlushed();
 
         logger.info('Codealike initialized with instance id ' + instanceId);
     },
@@ -299,7 +313,7 @@ var Codealike = {
             clearInterval(this.idleCheckInterval);
 
             this.checkIdle();
-            this.flushData();
+            this.flushData(true);
         }
 
         this.isTracking = false;
@@ -402,24 +416,108 @@ var Codealike = {
         return data;
     },
 
-    flushData: function() {
-        logger.info('Codealike is sending data');
+    saveLocalCache: function(data) {
+        // if there is data to flush, save it to disk
+        let flushFilePath = path.join(Codealike.cachePath, configuration.instanceSettings.clientId + '-' + moment().format('YYYYMMDDhhmmss') + '.json');
+        fs.writeFile(flushFilePath, JSON.stringify(data), 'utf8',
+        function(error) {
+            if (error) {
+                throw new Error('Could not save local cache file.');
+            }
+        });
+    },
 
-        let data = Codealike.getDataToFlush();
+    sendDataToCodealike: function(data, saveLocalIfFailed = true) {
+        // try to send data to server
+        api.postActivity(data).then(
+            (result) => {
+                // data sent
+                logger.trace("Data successfully sent to server");
 
-        if (!data)
+                resolve();
+            },
+            (error) => {
+                // if failed, save data local to be sent next opportunity
+                if (saveLocalIfFailed) { 
+                    Codealike.saveLocalCache(data);
+                }
+
+                logger.trace("Data not sent to server");
+
+                reject();
+            }
+        );
+    },
+
+    loadFilesPendingToBeFlushed: function() {
+        fs.readdir(Codealike.cachePath, function(err, filenames) {
+            if (err) {
+                //throw new Error('Could not load local cache path.');
+                return;
+            }
+
+            // process files and mark them to be removed
+            filenames.forEach(function(filename) {
+                Codealike.filesPendingToBeFlushed.push(filename);
+            });
+        });
+    },
+
+    flushLocalFile: function(fileName) {
+        if (!fileName)
             return;
 
-        // try to send data to server
-        api.postActivity(data)
-            .then(
-                (result) => {
-                    logger.trace("Data successfully sent to server", data);
-                },
-                (error) => {
-                    logger.trace("Data not sent to server", data);
-                }
-            );
+        fs.readFile(path.join(Codealike.cachePath, fileName), 'utf-8', function(err, content) {
+            logger.trace(fileName + ' picked to be flushed');
+
+            if (err) {
+                logger.log('File picked to be flushed not available anymore', fileName);
+                return;
+            }
+
+            // parse data as json
+            let data = JSON.parse(content);
+
+            // try to send data to server
+            Codealike.sendDataToCodealike(data, true);
+              
+            // remove the file (it will be created again if sending fails)
+            fs.rename(path.join(Codealike.cachePath, fileName), path.join(Codealike.historyPath, fileName), (err) => {});
+        });
+    },
+
+    flushData: function(localOnly = false) {
+        logger.info('Codealike is sending data');
+
+        // get data pending to be flushed
+        let data = Codealike.getDataToFlush();
+
+        // if no data found to flush, just return
+        if (!data) {
+            // if there are files pending to be flushed, pick one and send!
+            if (Codealike.filesPendingToBeFlushed) {
+                let fileToFlush = Codealike.filesPendingToBeFlushed.pop();
+                Codealike.flushLocalFile(fileToFlush);
+            }
+
+            // nothing else to do here
+            return;
+        }
+
+        if (localOnly) {
+            // if local only, just save cache to disk
+            Codealike.saveLocalCache(data);
+        }
+        else {
+            // try to send data to server
+            Codealike.sendDataToCodealike(data, true);
+
+            // if there are files pending to be flushed, pick one and send!
+            if (Codealike.filesPendingToBeFlushed) {
+                let fileToFlush = Codealike.filesPendingToBeFlushed.pop();
+                Codealike.flushLocalFile(fileToFlush);
+            }
+        }
     },
 
     updateOrChangeStateOnEvent: function(proposedNewState) {

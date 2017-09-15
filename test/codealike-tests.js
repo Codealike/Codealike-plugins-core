@@ -71,17 +71,16 @@ describe('Codealike Tracker', function() {
         recorder.recordState = trackState;
     });
 
-    it('Flush interval', function() {
+    it('Flush interval', sinon.test(function() {
         this.clock = sinon.useFakeTimers();
-        codealike.flushData = sinon.spy();
-        
+        codealike.sendDataToCodealike = this.spy();
+
         codealike.startTracking({ projectId: 'test-project'});
-
         this.clock.tick(600000);
+        assert.equal(1, codealike.sendDataToCodealike.callCount, 'Send to codealike should be called once');
 
-        assert.equal(2, codealike.flushData.callCount, 'Flush data should be called twice');
         this.clock.restore();
-    });
+    }));
 
     it('Idle interval', function() {
         this.clock = sinon.useFakeTimers();
@@ -204,7 +203,7 @@ describe('Codealike Tracker', function() {
             'After 118 secs of inactivity (120 secs total - 4th. idle check) Coding state should have changed to Coding');
 
         var recordedBatch = recorder.getLastBatch();
-        assert.equal(4, recordedBatch.states.length, 'Should recorded 2 state');
+        assert.equal(4, recordedBatch.states.length, 'Should recorded 1 state');
         assert.equal(2, recordedBatch.events.length, 'Should recorder 2 events');
 
         codealike.stopTracking();
