@@ -399,7 +399,7 @@ var Codealike = {
     flushData: function() {
         logger.info('Codealike is sending data');
 
-        let data = this.getDataToFlush();
+        let data = Codealike.getDataToFlush();
 
         if (!data)
             return;
