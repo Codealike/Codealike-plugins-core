@@ -22,7 +22,6 @@ var Codealike = {
     localCachePath: null,
     historyPath: null,
     hostFQDN: null,
-    filesPendingToBeFlushed: [],
 
     /* 
      *  stateBeforeIdle:
@@ -123,7 +122,7 @@ var Codealike = {
         this.isInitialized = true;
 
         // verify if there are local files to send
-        this.loadFilesPendingToBeFlushed();
+        this.flushPendingFiles();
 
         logger.info('Codealike initialized with instance id ' + instanceId);
     },
@@ -358,7 +357,7 @@ var Codealike = {
         // gets data to be sent to the server
         var dataToSend = recorder.getLastBatch();
 
-        if (dataToSend.events.length === 0 && dataToSend.states.length === 0) {
+        if (dataToSend.events.length === 0) {
             logger.info('No tracked data to send is available');
             return null;
         }
@@ -445,7 +444,7 @@ var Codealike = {
         );
     },
 
-    loadFilesPendingToBeFlushed: function() {
+    flushPendingFiles: function() {
         fs.readdir(Codealike.cachePath, function(err, filenames) {
             if (err) {
                 //throw new Error('Could not load local cache path.');
@@ -454,7 +453,7 @@ var Codealike = {
 
             // process files and mark them to be removed
             filenames.forEach(function(filename) {
-                Codealike.filesPendingToBeFlushed.push(filename);
+                Codealike.flushLocalFile(filename);
             });
         });
     },
@@ -490,12 +489,6 @@ var Codealike = {
 
         // if no data found to flush, just return
         if (!data) {
-            // if there are files pending to be flushed, pick one and send!
-            if (Codealike.filesPendingToBeFlushed) {
-                let fileToFlush = Codealike.filesPendingToBeFlushed.pop();
-                Codealike.flushLocalFile(fileToFlush);
-            }
-
             // nothing else to do here
             return;
         }
@@ -507,12 +500,6 @@ var Codealike = {
         else {
             // try to send data to server
             Codealike.sendDataToCodealike(data, true);
-
-            // if there are files pending to be flushed, pick one and send!
-            if (Codealike.filesPendingToBeFlushed) {
-                let fileToFlush = Codealike.filesPendingToBeFlushed.pop();
-                Codealike.flushLocalFile(fileToFlush);
-            }
         }
     },
 
