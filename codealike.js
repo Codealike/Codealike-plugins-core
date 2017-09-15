@@ -71,18 +71,6 @@ var Codealike = {
         if (!clientVersion)
             throw new Error("Codealike initialization requires a client Version");
 
-        // get the host name for currrent running environment
-        // try to get full name, if failed got for os hostname
-        Codealike.hostFQDN = os.hostname();
-        hostNameHelpers.getHostFQDN().then(
-            (hostname) => {
-                Codealike.hostFQDN = hostname;
-            },
-            (error) => {
-                // host name will default to os.hostname()
-            }
-        );
-
         // initialize instance value as new timestamp
         let instanceId = moment().unix().toString();
 
@@ -102,10 +90,28 @@ var Codealike = {
         // initialize recorder
         recorder.initialize();
 
+        // get the host name for currrent running environment
+        // try to get full name, if failed got for os hostname
+        hostNameHelpers.getHostFQDN().then(
+            (hostname) => {
+                Codealike.hostFQDN = hostname;
+
+                 // log host fqdn obtained for recording activities
+                logger.info('Codealike initialized with host name ' + Codealike.hostFQDN);
+            },
+            (error) => {
+                // host name will default to os.hostname()
+                Codealike.hostFQDN = os.hostname();
+
+                // log host fqdn obtained for recording activities
+                logger.info('Codealike initialized with host name ' + Codealike.hostFQDN);
+            }
+        );
+
         // set initialized flag as true
         this.isInitialized = true;
 
-        logger.info('Codealike initialized for ' + Codealike.hostFQDN + ' with instance id ' + instanceId);
+        logger.info('Codealike initialized with instance id ' + instanceId);
     },
 
     hasUserToken: function() {
