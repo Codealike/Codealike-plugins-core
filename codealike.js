@@ -433,8 +433,6 @@ var Codealike = {
             (result) => {
                 // data sent
                 logger.trace("Data successfully sent to server");
-
-                resolve();
             },
             (error) => {
                 // if failed, save data local to be sent next opportunity
@@ -443,8 +441,6 @@ var Codealike = {
                 }
 
                 logger.trace("Data not sent to server");
-
-                reject();
             }
         );
     },
