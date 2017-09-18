@@ -121,9 +121,6 @@ var Codealike = {
         // set initialized flag as true
         this.isInitialized = true;
 
-        // verify if there are local files to send
-        this.flushPendingFiles();
-
         logger.info('Codealike initialized with instance id ' + instanceId);
     },
 
@@ -300,6 +297,9 @@ var Codealike = {
         this.flushInterval = setInterval(this.flushData, configuration.globalSettings.flushInterval);
         this.idleCheckInterval = setInterval(this.checkIdle, configuration.globalSettings.idleCheckInterval);
 
+        // verify if there are local files to send
+        this.flushPendingFiles();
+
         logger.info('Codealike started tracking');
     },
 
@@ -427,19 +427,27 @@ var Codealike = {
     },
 
     sendDataToCodealike: function(data, saveLocalIfFailed = true) {
-        // try to send data to server
-        api.postActivity(data).then(
-            (result) => {
-                // data sent
-                logger.trace("Data successfully sent to server");
-            },
-            (error) => {
-                // if failed, save data local to be sent next opportunity
-                if (saveLocalIfFailed) { 
-                    Codealike.saveLocalCache(data);
-                }
+        return new Promise(
+            function(resolve,reject) {
+                // try to send data to server
+                api.postActivity(data).then(
+                    (result) => {
+                        // data sent
+                        logger.trace("Data successfully sent to server");
 
-                logger.trace("Data not sent to server");
+                        resolve();
+                    },
+                    (error) => {
+                        // if failed, save data local to be sent next opportunity
+                        if (saveLocalIfFailed) { 
+                            Codealike.saveLocalCache(data);
+                        }
+
+                        logger.trace("Data not sent to server", error);
+
+                        reject(error);
+                    }
+                );
             }
         );
     },
@@ -474,10 +482,22 @@ var Codealike = {
             let data = JSON.parse(content);
 
             // try to send data to server
-            Codealike.sendDataToCodealike(data, true);
-              
-            // remove the file (it will be created again if sending fails)
-            fs.rename(path.join(Codealike.cachePath, fileName), path.join(Codealike.historyPath, fileName), (err) => {});
+            Codealike.sendDataToCodealike(data, false).then(
+                () => {
+                    // if finished ok, move the file to history
+                    // remove the file (it will be created again if sending fails)
+                    fs.rename(path.join(Codealike.cachePath, fileName), path.join(Codealike.historyPath, fileName), (err) => {
+                        if (err) {
+                            logger.log("Error moving " + fileName + " to history folder");
+                        }
+
+                        logger.log("File " + fileName + " succesfully moved to history folder");
+                    });
+                },
+                (error) => {
+                    logger.trace("Could not send " + fileName + " information to server", error);
+                }
+            );
         });
     },
 
