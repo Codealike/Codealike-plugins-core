@@ -31,8 +31,21 @@ var Recorder = {
         if (!this.isInitialized)
             throw new Error("Recorder should be initialized before used");
 
+        // if last state is null or last event is null
+        // something is wrong, but nothing to do at this point
+        // but to warn
+        if (this.lastState === null 
+            || this.lastEvent === null) {
+            console.log("Opppssss.", this.lastEvent, this.lastState);
+            return null;
+        }
+
         let currentTime = new Date();
         
+        // closes both types of events
+        this.lastState.end = currentTime;
+        this.lastEvent.end = currentTime;
+
         // creates a copy of the current session
         this.lastEvent = _.clone(this.lastEvent);
         this.lastState = _.clone(this.lastState);
@@ -40,30 +53,17 @@ var Recorder = {
 
         // update last state and last event
         // given they will be starting over again now
-        if (this.lastState) {
-            this.lastState.start = currentTime;
-            this.lastState.end = null;
-        }
-        if (this.lastEvent) {
-            this.lastEvent.start = currentTime;
-            this.lastEvent.end = null;
-        }
-
+        this.lastState.start = currentTime;
+        this.lastState.end = null;
+        
+        this.lastEvent.start = currentTime;
+        this.lastEvent.end = null;
+        
         // initializes an empty session for further tracking
         this.currentSession = {
-          states: [],
-          events: []
+          states: [ this.lastState ],
+          events: [ this.lastEvent ]
         };
-
-        // if there is any state, let's close it final state by now
-        if (sessionToFlush.states.length) {
-            sessionToFlush.states[sessionToFlush.states.length-1].end = currentTime;
-        }
-
-        // if there is any event, let's close it final event by now
-        if (sessionToFlush.events.length) {
-            sessionToFlush.events[sessionToFlush.events.length-1].end = currentTime;
-        }
 
         return sessionToFlush;
     },

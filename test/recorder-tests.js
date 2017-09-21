@@ -20,12 +20,15 @@ describe('Codealike Recorder', function() {
         expect(() => recorder.recordState()).to.throw('Recorder should be initialized before used');
     });
 
-    it('Recorder state after flushing should be consistent', function() {
+    it('State after flushing should be consistent', function() {
         this.clock = sinon.useFakeTimers();
 
         recorder.initialize();
 
         const firstEventStart = new Date();
+        recorder.recordState({
+            type: activityType.Coding
+        });
         recorder.recordEvent({
             file: 'f1.js',
             line: 12,
@@ -44,8 +47,8 @@ describe('Codealike Recorder', function() {
 
         // perform a get last batch 
         let firstBatch = recorder.getLastBatch();
-        //assert.equal(firstBatch.states[firstBatch.states.length-1].type, recorder.lastState.type, 'After 1st batching results, last state should be kept');
-        //assert.equal(firstBatch.states[firstBatch.states.length-1].end, recorder.lastState.start, 'After 1st batching results, last state should be kept with right timing');
+        assert.equal(firstBatch.states[firstBatch.states.length-1].type, recorder.lastState.type, 'After 1st batching results, last state should be kept');
+        assert.equal(firstBatch.states[firstBatch.states.length-1].end, recorder.lastState.start, 'After 1st batching results, last state should be kept with right timing');
         assert.equal(firstBatch.events[firstBatch.events.length-1].type, recorder.lastEvent.type, 'After 1st batching results, last event should be kept');
         assert.equal(firstBatch.events[firstBatch.events.length-1].end, recorder.lastEvent.start, 'After 1st batching results, last event should be kept with right timing');
 
@@ -64,8 +67,8 @@ describe('Codealike Recorder', function() {
         });
 
         let secondBatch = recorder.getLastBatch();
-        //assert.equal(secondBatch.states[secondBatch.states.length-1].type, recorder.lastState.type, 'After 2nd batching results, last state should be kept');
-        //assert.equal(secondBatch.states[secondBatch.states.length-1].end, recorder.lastState.start, 'After 2nd batching results, last state should be kept with right timing');
+        assert.equal(secondBatch.states[secondBatch.states.length-1].type, recorder.lastState.type, 'After 2nd batching results, last state should be kept');
+        assert.equal(secondBatch.states[secondBatch.states.length-1].end, recorder.lastState.start, 'After 2nd batching results, last state should be kept with right timing');
         assert.equal(secondBatch.events[secondBatch.events.length-1].type, recorder.lastEvent.type, 'After 2nd batching results, last event should be kept');
         assert.equal(secondBatch.events[secondBatch.events.length-1].end, recorder.lastEvent.start, 'After 2nd batching results, last event should be kept with right timing');
 

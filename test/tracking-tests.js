@@ -40,6 +40,46 @@ describe('Codealike tracking', function() {
         codealike.dispose();
     });
 
+    it('Does not loses last state when flushing', function() {
+        this.clock = sinon.useFakeTimers();
+
+        codealike.startTracking({ projectId: 'test-project'});
+
+        // tracks one event
+        codealike.trackFocusEvent({
+            file: 'f1.js',
+            line: 12
+        });
+
+        this.clock.tick(2000);
+
+        var batch = recorder.getLastBatch();
+
+        assert.equal(batch.states.length, 2, "Should have recorded one state");
+        assert.equal(batch.events.length, 2, "Should have recorded one event");
+        assert.equal(recorder.lastState.type, activityType.Coding, "After flush, last state should be conserved");
+        assert.equal(recorder.lastEvent.type, activityType.DocumentFocus, "After flush, last event should be conserved");
+
+        var secondBatch = recorder.getLastBatch();
+        assert.equal(secondBatch.states.length, 1, "Should have recorded one state");
+        assert.equal(secondBatch.events.length, 1, "Should have recorded one event");
+        assert.equal(recorder.lastState.type, activityType.Coding, "After second flush, last state should be conserved");
+        assert.equal(recorder.lastEvent.type, activityType.DocumentFocus, "After second flush, last event should be conserved");
+
+        codealike.trackCodingEvent({
+            file: 'f1.js',
+            line: 12
+        });
+
+        var thirdBatch = recorder.getLastBatch();
+        assert.equal(thirdBatch.states.length, 1, "Should have recorded one state");
+        assert.equal(thirdBatch.events.length, 2, "Should have recorded two events");
+        assert.equal(recorder.lastState.type, activityType.Coding, "After second flush, last state should be conserved");
+        assert.equal(recorder.lastEvent.type, activityType.DocumentEdit, "After second flush, last event should be conserved");
+
+        this.clock.restore();
+    });
+
     it('Tracks activities for less than one second interactions', function() {
         this.clock = sinon.useFakeTimers();
 
@@ -48,6 +88,7 @@ describe('Codealike tracking', function() {
         this.clock.tick(600);
         
         let data = codealike.getDataToFlush();
+
         assert.equal('00:00:00.600', data.events[1].duration, 'Events duration should be rounded up');
         assert.equal('00:00:00.600', data.states[1].duration, 'States duration should be rounded up');
 
