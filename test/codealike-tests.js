@@ -20,7 +20,7 @@ describe('Codealike Tracker', function() {
         codealike.initialize('testClient', '0.0.1');
     });
 
-    afterEach('Restore console routines', function() {
+    afterEach('Dispose codealike', function() {
         codealike.dispose();
     });
 
@@ -71,18 +71,7 @@ describe('Codealike Tracker', function() {
         recorder.recordState = trackState;
     });
 
-    //it('Flush interval', sinon.test(function() {
-    //    this.clock = sinon.useFakeTimers();
-    //    api.postActivity = this.spy();
-//
-    //    codealike.startTracking({ projectId: 'test-project'});
-    //    this.clock.tick(600000);
-    //    assert.equal(1, api.postActivity.callCount, 'Send to codealike should be called once');
-//
-    //    this.clock.restore();
-    //}));
-
-    it('Idle interval', function() {
+    it('Idle interval', done => {
         this.clock = sinon.useFakeTimers();
         var checkIdleSpy = sinon.spy(codealike, "checkIdle");
         
@@ -96,9 +85,11 @@ describe('Codealike Tracker', function() {
         
         codealike.checkIdle.restore();
         this.clock.restore();
+
+        done();
     });
 
-    it('Flush data', function() {
+    it('Flush data', done => {
         this.clock = sinon.useFakeTimers();
         codealike.startTracking({ projectId: 'test-project'});
 
@@ -113,9 +104,11 @@ describe('Codealike Tracker', function() {
 
         codealike.stopTracking();
         this.clock.restore();
+
+        done();
     });
 
-    it('Recover last state before iddle', function() {
+    it('Recover last state before idle', function() {
         this.clock = sinon.useFakeTimers();
         var checkIdleSpy = sinon.spy(codealike, "checkIdle");
 

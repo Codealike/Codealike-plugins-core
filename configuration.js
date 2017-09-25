@@ -14,6 +14,9 @@ var baseGlobalSettings = {
 
 var Configuration = {
     codealikeBasePath: null,
+    instancePath: null, // path where current running instance related stuff is saved
+    cachePath: null,
+    historyPath: null,
 
     globalSettings: {
         userToken: null,
@@ -30,21 +33,13 @@ var Configuration = {
     },
 
     initialize: function(clientId, clientVersion, instanceId) {
-        // sets the codealike base path for logging and user settings and profile
-        let basePath = path.join(os.homedir(), '.codealike');
+        // verify required folder structure exists
+        this.createRequiredPaths(clientId, instanceId);
 
         // store current instance settings
         this.instanceSettings.clientId = clientId;
         this.instanceSettings.clientVersion = clientVersion;
         this.instanceSettings.instanceId = instanceId;
-
-        // ensure codealike base path exists
-        if (!fs.existsSync(basePath)) {
-            fs.mkdirSync(basePath);
-        }
-
-        // sets path for aplication usage
-        this.codealikeBasePath = basePath;
     },
 
     /*
@@ -68,6 +63,11 @@ var Configuration = {
         }
     },
 
+    /*
+     *  saveCodealikeGlobalSettings
+     *  This method saves user settings configured in current configuration instance
+     *  to the codealike user folder
+     */
     savelGlobalSettings: function(settings) {
         let codealikeSettingsFile = path.join(this.codealikeBasePath, 'user.json');
 
@@ -90,6 +90,30 @@ var Configuration = {
 
     getUserToken: function() {
         return this.globalSettings.userToken;
+    },
+
+    ensurePathExists: function(path) {
+        // ensure log and trace paths exists
+        if (!fs.existsSync(path)) {
+            fs.mkdirSync(path);
+        }
+    },
+
+    createRequiredPaths: function(clientId, instanceId) {
+        this.codealikeBasePath = path.join(os.homedir(), '.codealike');
+        this.ensurePathExists(this.codealikeBasePath);
+
+        let clientPath = path.join(this.codealikeBasePath, clientId);
+        this.ensurePathExists(clientPath);
+
+        this.instancePath = path.join(clientPath, instanceId);
+        this.ensurePathExists(this.instancePath);
+
+        this.cachePath = path.join(this.codealikeBasePath, 'cache');
+        this.ensurePathExists(this.cachePath);
+
+        this.historyPath = path.join(this.codealikeBasePath, 'history');
+        this.ensurePathExists(this.historyPath);
     }
 }
 

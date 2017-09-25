@@ -8,12 +8,6 @@ var activityType = require('../types/activityType').ActivityType;
 
 describe('Codealike Recorder', function() {
 
-    beforeEach('Mock console routines', function() {
-    });
-
-    afterEach('Restore console routines', function() {
-    });
-
     it('Initialization error thrown', function() {
         expect(() => recorder.getLastBatch()).to.throw('Recorder should be initialized before used');
         expect(() => recorder.recordEvent()).to.throw('Recorder should be initialized before used');

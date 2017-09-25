@@ -36,7 +36,7 @@ describe('Codealike tracking', function() {
         codealike.initialize('testClient', '0.0.1');
     });
 
-    afterEach('Restore console routines', function() {
+    afterEach('Dispose codealike', function() {
         codealike.dispose();
     });
 

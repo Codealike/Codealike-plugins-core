@@ -18,9 +18,6 @@ var Codealike = {
     flushInterval: null,
     idleCheckInterval: null,
     instanceId: '',
-    instancePath: null, // path where current running instance related stuff is saved
-    localCachePath: null,
-    historyPath: null,
     hostFQDN: null,
 
     /* 
@@ -39,34 +36,6 @@ var Codealike = {
      */
     currentProject: null,
 
-    ensurePathExists(path) {
-        // ensure log and trace paths exists
-        if (!fs.existsSync(path)) {
-            fs.mkdirSync(path);
-        }
-    },
-
-    createRequiredPaths(clientId, instanceId) {
-        let basePath = path.join(os.homedir(), '.codealike');
-        this.ensurePathExists(basePath);
-
-        let clientPath = path.join(basePath, clientId);
-        this.ensurePathExists(clientPath);
-
-        let instancePath = path.join(clientPath, instanceId);
-        this.ensurePathExists(instancePath);
-
-        let cachePath = path.join(basePath, 'cache');
-        this.ensurePathExists(cachePath);
-
-        let historyPath = path.join(basePath, 'history');
-        this.ensurePathExists(historyPath);
-
-        this.historyPath = historyPath;
-        this.cachePath = cachePath;
-        this.instancePath = instancePath;
-    },
-
     /*
      *  initialize:
      *  Initialize process should configure api and recorder instances
@@ -84,15 +53,12 @@ var Codealike = {
         // initialize instance value as new timestamp
         let instanceId = moment().unix().toString();
 
-        // verify required folder structure exists
-        this.createRequiredPaths(clientId, instanceId);
-
         // initialize codealike configuration and load global settings
         configuration.initialize(clientId, clientVersion, instanceId);
         configuration.loadGlobalSettings();
 
         // initialize logger
-        logger.initialize(this.instancePath);
+        logger.initialize(configuration.instancePath);
 
         // initialize api
         api.initialize(clientId);
@@ -417,7 +383,7 @@ var Codealike = {
 
     saveLocalCache: function(data) {
         // if there is data to flush, save it to disk
-        let flushFilePath = path.join(Codealike.cachePath, configuration.instanceSettings.clientId + '-' + moment().format('YYYYMMDDhhmmss') + '.json');
+        let flushFilePath = path.join(configuration.cachePath, configuration.instanceSettings.clientId + '-' + moment().format('YYYYMMDDhhmmss') + '.json');
         fs.writeFile(flushFilePath, JSON.stringify(data), 'utf8',
         function(error) {
             if (error) {
@@ -453,7 +419,7 @@ var Codealike = {
     },
 
     flushPendingFiles: function() {
-        fs.readdir(Codealike.cachePath, function(err, filenames) {
+        fs.readdir(configuration.cachePath, function(err, filenames) {
             if (err) {
                 //throw new Error('Could not load local cache path.');
                 return;
@@ -470,7 +436,7 @@ var Codealike = {
         if (!fileName)
             return;
 
-        fs.readFile(path.join(Codealike.cachePath, fileName), 'utf-8', function(err, content) {
+        fs.readFile(path.join(configuration.cachePath, fileName), 'utf-8', function(err, content) {
             logger.trace(fileName + ' picked to be flushed');
 
             if (err) {
@@ -478,15 +444,25 @@ var Codealike = {
                 return;
             }
 
+            // if content is empty, nothing to do
+            if (!content)
+                return;
+
             // parse data as json
-            let data = JSON.parse(content);
+            let data = "";
+            try {
+                data = JSON.parse(content);
+            }
+            catch(error) {
+                logger.log("File " + fileName + " content is corrupt");
+            }
 
             // try to send data to server
             Codealike.sendDataToCodealike(data, false).then(
                 () => {
                     // if finished ok, move the file to history
                     // remove the file (it will be created again if sending fails)
-                    fs.rename(path.join(Codealike.cachePath, fileName), path.join(Codealike.historyPath, fileName), (err) => {
+                    fs.rename(path.join(configuration.cachePath, fileName), path.join(configuration.historyPath, fileName), (err) => {
                         if (err) {
                             logger.log("Error moving " + fileName + " to history folder");
                         }
