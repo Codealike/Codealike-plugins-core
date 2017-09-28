@@ -35,7 +35,6 @@ describe('Authentication', function() {
         codealikeApi
             .getPluginConfiguration()
             .then(result => { 
-                console.log(result);
                 assert.isNotNull(result.idleCheckInterval, "Plugin settings should include idle check interval parameter");
                 assert.isNotNull(result.idleMaxPeriod, "Plugin settings should include idle max period parameter");
                 assert.isNotNull(result.flushInterval, "Plugin settings should include flush interval parameter");

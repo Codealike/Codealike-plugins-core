@@ -64,7 +64,7 @@ var Codealike = {
         api.getPluginConfiguration().then(
             (result) => {
                 logger.log("Plugin settings retrieved", result);
-                Configuration.loadPluginSettings(result);
+                configuration.loadPluginSettings(result);
             },
             (error) => {
                 // nothing to do, configuration will
