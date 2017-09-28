@@ -16,12 +16,14 @@ describe('Codealike initialization', function() {
 });
 
 describe('Codealike Tracker', function() {
-    beforeEach('Mock console routines', function() {
+    beforeEach('Mock console routines', done => {
         codealike.initialize('testClient', '0.0.1');
+        done();
     });
 
-    afterEach('Dispose codealike', function() {
+    afterEach('Dispose codealike', done => {
         codealike.dispose();
+        done();
     });
 
     it('Initialization', function() {

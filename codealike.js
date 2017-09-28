@@ -55,10 +55,28 @@ var Codealike = {
 
         // initialize codealike configuration and load global settings
         configuration.initialize(clientId, clientVersion, instanceId);
-        configuration.loadGlobalSettings();
 
         // initialize logger
         logger.initialize(configuration.instancePath);
+        
+        // try fetch plugin configuration from server
+        // if retrieved, apply it. Else use defaults
+        api.getPluginConfiguration().then(
+            (result) => {
+                logger.log("Plugin settings retrieved", result);
+                Configuration.loadPluginSettings(result);
+            },
+            (error) => {
+                // nothing to do, configuration will
+                // fallback to base settings
+                logger.log("Plugin settings could not been retreived", error);
+            }
+        ).catch(error => {
+            logger.log("Puglin settings could not been retrieved", error)
+        });
+        
+        // load user preferences from global settings file
+        configuration.loadGlobalSettings();
 
         // initialize api
         api.initialize(clientId);
@@ -260,8 +278,8 @@ var Codealike = {
         this.trackSystemState(workspaceStartTime);
         this.trackOpenSolutionEvent(workspaceStartTime);
 
-        this.flushInterval = setInterval(this.flushData, configuration.globalSettings.flushInterval);
-        this.idleCheckInterval = setInterval(this.checkIdle, configuration.globalSettings.idleCheckInterval);
+        this.flushInterval = setInterval(this.flushData, configuration.pluginSettings.flushInterval);
+        this.idleCheckInterval = setInterval(this.checkIdle, configuration.pluginSettings.idleCheckInterval);
 
         // verify if there are local files to send
         this.flushPendingFiles();
@@ -296,7 +314,7 @@ var Codealike = {
         else {
             var currentTime = new Date();
             var elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime);
-            if (elapsedFromLastEventInSeconds >= configuration.globalSettings.idleMaxPeriod) {
+            if (elapsedFromLastEventInSeconds >= configuration.pluginSettings.idleMaxPeriod) {
                 
                 // if state was coding before going iddle
                 // all the time between last event and idle should be coding

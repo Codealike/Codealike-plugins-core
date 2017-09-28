@@ -51,6 +51,24 @@ var RestClient = {
         this.apiUrl = apiUrl;
     },
 
+    executeAnonymousGet: (url) => {
+        return new Promise(
+            function(resolve, reject) {
+                fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'GET'
+                })
+                .then(r => handleResponse(r))
+                .then(
+                    result => resolve(result), 
+                    error => reject(error)
+                )
+                .catch(error => reject(error));
+        });
+    },
+
     executeGet: (clientId, route, userId, userToken) => {
         let url = `${this.apiUrl}/${route}`;
         let config = getRequestConfig('GET', clientId, userId, userToken);
@@ -61,7 +79,7 @@ var RestClient = {
                 .then(r => handleResponse(r))
                 .then(
                     result => resolve(result), 
-                    error => reject(result)
+                    error => reject(error)
                 )
                 .catch(error => reject(error));
         });

@@ -29,6 +29,22 @@ describe('Authentication', function() {
         codealikeApi.dispose();
     });
 
+    it('Succesfully get plugin settings', done => {
+        codealikeApi.initialize('testClient');
+
+        codealikeApi
+            .getPluginConfiguration()
+            .then(result => { 
+                console.log(result);
+                assert.isNotNull(result.idleCheckInterval, "Plugin settings should include idle check interval parameter");
+                assert.isNotNull(result.idleMaxPeriod, "Plugin settings should include idle max period parameter");
+                assert.isNotNull(result.flushInterval, "Plugin settings should include flush interval parameter");
+                done(); })
+            .catch(error => { throw new Error("Retrieving plugin configuration should not fail");  done(); });
+
+        codealikeApi.dispose();
+    });
+
     it('fail by parameter', done => {
         codealikeApi.initialize('testClient');
 

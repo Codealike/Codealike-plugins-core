@@ -48,6 +48,20 @@ var Api = {
         this.isAuthenticated = false;
     },
 
+    getPluginConfiguration: function() {
+        return new Promise(
+            function(resolve, reject) {
+                client.executeAnonymousGet('https://codealike.com/api/v2/public/PluginsConfiguration')
+                    .then((result) => { 
+                        resolve(result);
+                    })
+                    .catch((error) => { 
+                        reject(error);
+                    });
+            }
+        );
+    },
+
     authenticate: function(userToken) {
         if (!this.isInitialized)
             throw new Error("Codealike Api should be initialized before used");

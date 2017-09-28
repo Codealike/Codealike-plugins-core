@@ -6,7 +6,10 @@ const os = require('os');
 
 var baseGlobalSettings = {
     userToken: null,
-    apiUrl: 'https://codealike.com/api/v2',
+    apiUrl: 'https://codealike.com/api/v2'
+};
+
+var basePluginSettings = {
     idleCheckInterval: 30000, // in milliseconds
     idleMaxPeriod: 60000, // in milliseconds
     flushInterval: 300000 // in milliseconds
@@ -21,6 +24,9 @@ var Configuration = {
     globalSettings: {
         userToken: null,
         apiUrl: 'https://codealike.com/api/v2',
+    },
+
+    pluginSettings: {
         idleCheckInterval: 30000, // in milliseconds
         idleMaxPeriod: 60000, // in milliseconds
         flushInterval: 300000 // in milliseconds
@@ -40,6 +46,11 @@ var Configuration = {
         this.instanceSettings.clientId = clientId;
         this.instanceSettings.clientVersion = clientVersion;
         this.instanceSettings.instanceId = instanceId;
+    },
+
+    // plugin settings can be injected from outside
+    loadPluginSettings: function(settings) {
+        Configuration.pluginSettings = Object.assign({}, basePluginSettings, settings);
     },
 
     /*
