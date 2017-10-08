@@ -69,7 +69,9 @@ var Recorder = {
     },
 
     /*
-     * 
+     *  isLastEventPropagating:
+     *  This method checks if provided event is continuation
+     *  of the last event recorded by the system.
      */
     isLastEventPropagating: function(event) {
         return (
@@ -81,7 +83,9 @@ var Recorder = {
     },
 
     /*
-     * 
+     *  isLastStatePropagating:
+     *  This method checks if provided state is continuation
+     *  of the last state recorded by the system
      */
     isLastStatePropagating: function(state) {
         return (
