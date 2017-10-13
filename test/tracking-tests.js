@@ -7,6 +7,7 @@ var codealike = require('../codealike').Codealike
 var activityType = require('../types/activityType').ActivityType;
 var recorder = require('../recorder/recorder').Recorder;
 var api = require('../api/codealikeApi').Api;
+var configuration = require('../configuration');
 var fs = require('fs');
 var path = require('path');
 
@@ -93,6 +94,57 @@ describe('Codealike tracking', function() {
         assert.equal('00:00:00.600', data.states[1].duration, 'States duration should be rounded up');
 
         this.clock.restore();
+    });
+
+    it('System type event/state duration should not be modified',  done => {
+        this.clock = sinon.useFakeTimers();
+
+        var flushDataRoutine = codealike.flushData;
+        codealike.flushData = function() {};
+
+        var checkIdleRoutine = codealike.checkIdle;
+        codealike.checkIdle = function() {};
+
+        codealike.startTracking({ projectId: 'test-project'});
+        this.clock.tick(3600000);
+
+        codealike.trackCodingEvent({ "file": "file1", "line": 1 });
+        this.clock.tick(90000);
+
+        let data = codealike.getDataToFlush();
+
+        assert.equal('01:00:00.000', data.events[0].duration, 'System event should have tracked 1 hour');
+        assert.equal('01:00:00.000', data.states[0].duration, 'System state should have tracked 1 hour');
+
+        codealike.flushData = flushDataRoutine;
+        codealike.checkIdle = checkIdleRoutine;
+        this.clock.restore();
+
+        done();
+    });
+
+    it('Do not track iddle time as last state when idle check is delayed',  done => {
+        this.clock = sinon.useFakeTimers();
+
+        var flushDataStub = sinon.stub(codealike, 'flushData').callsFake(() => {});
+        var checkIdleStub = sinon.stub(codealike, 'checkIdle').callsFake(() => {});
+
+        codealike.startTracking({ projectId: 'test-project'});
+        codealike.trackCodingEvent({ "file": "file1", "line": 1 });
+        this.clock.tick(3600000);
+
+        codealike.checkIdle.restore();
+        this.clock.tick(600000);
+
+        let data = codealike.getDataToFlush();
+        
+        assert.equal('00:00:30.000', data.events[1].duration, 'Events duration should not be greater than idle maximun period');
+        assert.equal('00:00:30.000', data.states[1].duration, 'States duration should not be greater than idle maximun period');
+
+        codealike.flushData.restore();
+        this.clock.restore();
+
+        done();
     });
 
     it('Tracking activity script should reflect expected log', done => {

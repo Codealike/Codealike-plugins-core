@@ -1,6 +1,9 @@
 'use strict';
 
-var _ = require('lodash-node');
+var configuration = require('../configuration');
+var activityType = require('../types/activityType').ActivityType;
+var _ = require('lodash');
+var moment = require('moment');
 
 var Recorder = {
     isInitialized: false,
@@ -43,8 +46,8 @@ var Recorder = {
         let currentTime = new Date();
         
         // closes both types of events
-        this.lastState.end = currentTime;
-        this.lastEvent.end = currentTime;
+        this.updateEndableEntityAsOfNowIfRequired(this.lastState);
+        this.updateEndableEntityAsOfNowIfRequired(this.lastEvent);
 
         // creates a copy of the current session
         this.lastEvent = _.clone(this.lastEvent);
@@ -105,18 +108,29 @@ var Recorder = {
         // if entity is null, nothing to do here
         if (!endableEntity)
             return;
+       
+        // get idle max interval in milliseconds
+        var idleMinIntervalInMillisecons = configuration.pluginSettings.idleCheckInterval;
+        
+        var currentTime = new Date();
+        var entityBaseEnd = endableEntity.end || endableEntity.start;
+        var elapsedPeriodBetweenLastEventAndNow = (currentTime - entityBaseEnd);
 
-        // if entity has no end, no choice 
-        // but to set it ended now
-        if (!endableEntity.end) {
-            endableEntity.end = new Date();
+        // finally, end of entity was no so long ago
+        // let's give it a change to be wild!!!
+        if (elapsedPeriodBetweenLastEventAndNow <= idleMinIntervalInMillisecons) {
+            endableEntity.end = currentTime;
         }
         else {
-            // finally, end of entity was no so long ago
-            // let's give it a change to be wild!!!
-            var currentTime = new Date();
-            if ((currentTime - endableEntity.end) <= 7000) {
-                endableEntity.end = new Date();
+            // if event/state type is system related we track
+            // whatever it is (no exceptions or checks about duration)
+            if (endableEntity.type === activityType.System 
+                || endableEntity.type === activityType.OpenSolution) {
+                endableEntity.end = currentTime;
+            }
+            else {
+                // else, we ensure it does not have inconsistent time
+                endableEntity.end = moment(endableEntity.start).add(idleMinIntervalInMillisecons);
             }
         }
     },
@@ -181,13 +195,13 @@ var Recorder = {
             this.lastEvent.namespace = event.namespace;
 
             // also update last finishing time as of now
-            this.lastEvent.end = new Date();
+            this.updateEndableEntityAsOfNowIfRequired(this.lastEvent);
         }
     },
 
     updateLastState: function() {
         if (this.lastState) {
-            this.lastState.end = new Date();
+            this.updateEndableEntityAsOfNowIfRequired(this.lastState);
         }
     }
 };
