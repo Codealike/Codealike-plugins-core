@@ -315,13 +315,6 @@ var Codealike = {
             var currentTime = new Date();
             var elapsedFromLastEventInSeconds = (currentTime - recorder.lastEventTime);
             if (elapsedFromLastEventInSeconds >= configuration.pluginSettings.idleMaxPeriod) {
-                
-                // if state was coding before going idle
-                // all the time between last event and idle should be coding
-                if (recorder.lastState.type === activityType.Coding) {
-                    recorder.lastState.end = new Date();
-                }
-
                 // save last state type before going iddle
                 Codealike.stateBeforeIdle = recorder.lastState.type;
 
