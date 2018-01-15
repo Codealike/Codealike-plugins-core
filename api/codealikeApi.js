@@ -62,6 +62,36 @@ var Api = {
         );
     },
 
+    tryAuthenticateLocal(userToken) {
+        if (!this.isInitialized)
+            throw new Error("Codealike Api should be initialized before used");
+        
+        // save reference for inner execution
+        let that = this;
+
+        // ensure old connection params are clean
+        that.isAuthenticated = true;
+        that.userId = null;
+        that.token = null;
+
+        return new Promise(function(resolve, reject) {
+            var tokenArray = userToken.split('/');
+
+            // token structure requires at least two elements
+            if (tokenArray.length != 2) {
+                reject("Invalid token provided");
+            }
+            else {
+                // set api as authenticated and resolve
+                that.isAuthenticated = true;
+                that.userId = tokenArray[0];
+                that.token = tokenArray[1];
+
+                resolve();
+            }
+        });
+    },
+
     authenticate: function(userToken) {
         if (!this.isInitialized)
             throw new Error("Codealike Api should be initialized before used");

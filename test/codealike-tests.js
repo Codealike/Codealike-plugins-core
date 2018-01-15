@@ -7,6 +7,7 @@ var codealike = require('../codealike').Codealike
 var activityType = require('../types/activityType').ActivityType;
 var recorder = require('../recorder/recorder').Recorder;
 var api = require('../api/codealikeApi').Api;
+var configuration = require('../configuration');
 
 describe('Codealike initialization', function() {
     it('Initialization configuration', function() {
@@ -40,6 +41,27 @@ describe('Codealike Tracker', function() {
         expect(() => codealike.trackCodingEvent()).to.throw('Codealike should be initialized before used');
         expect(() => codealike.trackFocusEvent()).to.throw('Codealike should be initialized before used');
         expect(() => codealike.trackSystemState()).to.throw('Codealike should be initialized before used');
+    });
+
+    it('Connects without network required', function() {
+        const apiLiveStub = sinon.stub(api, "authenticate");
+        const apiLocalStub = sinon.stub(api, "tryAuthenticateLocal");
+
+        // if configuration has a token, it should not call api
+        configuration.globalSettings.userToken = null;
+        codealike.connect();
+        assert.equal(apiLocalStub.callCount, 0, "Should not try to authenticate local if token is not set");
+        assert.equal(apiLiveStub.callCount, 1, "Api should be called if user token is not set");
+        apiLiveStub.reset();
+
+        // if configuration has a token, it should not call api
+        configuration.globalSettings.userToken = 'some-fake-token';
+        codealike.connect();
+        assert.equal(apiLocalStub.callCount, 1, "Should try to authenticate local if token is set");
+        assert.equal(apiLiveStub.callCount, 0, "Api shouldn't be called if user token is set");
+
+        apiLocalStub.restore();
+        apiLiveStub.restore();
     });
 
     it('Tracking Events', function() {

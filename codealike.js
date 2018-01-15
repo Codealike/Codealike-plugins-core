@@ -160,7 +160,18 @@ var Codealike = {
 
         logger.info(`Codealike is connecting`);    
 
-        return api.authenticate(configuration.globalSettings.userToken);
+        return new Promise(function(resolve, reject) {
+            if (configuration.globalSettings.userToken) {
+                api.tryAuthenticateLocal(configuration.globalSettings.userToken)
+                    .then(result => resolve(result))
+                    .catch(error => reject(error));
+            }
+            else {
+                api.authenticate(configuration.globalSettings.userToken)
+                    .then(result => resolve(result))
+                    .catch(error => reject(error));
+            }
+        });
     },
 
     /*
