@@ -36,9 +36,9 @@ function handleResponse(response) {
             return response.text();
         });
     } else {
-        var error = new Error(response.statusText)
-        error.response = response
-        throw error
+        var error = new Error(response.statusText);
+        error.response = response;
+        throw error;
     }
 }
 
