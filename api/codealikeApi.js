@@ -46,15 +46,20 @@ var Api = {
     dispose: function() {
         this.isInitialized = false;
         this.clientId = null;
+        this.stateSubscribers = [];
         
         logger.info('Codealike api disposed');
     },
 
     disconnect: function() {
+        // clean up session information
         this.clientId = null;
         this.userId = null;
         this.token = null;
         this.isAuthenticated = false;
+
+        // set status to offline
+        Api.setOffLine();
     },
 
     setOnLine: function() { Api.setConnectionState({ networkStatus: 'OnLine' }); },
