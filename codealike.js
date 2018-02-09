@@ -126,7 +126,7 @@ var Codealike = {
     connectionStateSubscriber: function(state) {
         if (Codealike.stateSubscribers) {
             Codealike.stateSubscribers.forEach(callback => {
-                callback(state);
+                callback(Object.assign({}, state, { isTracking: Codealike.isTracking }));
             });
         }
     },
