@@ -44,7 +44,7 @@ describe('Authentication', function() {
         codealikeApi.dispose();
     });
 
-    it('fail by parameter', done => {
+    it('Fail by parameter', done => {
         codealikeApi.initialize('testClient');
 
         codealikeApi
@@ -65,15 +65,15 @@ describe('Authentication', function() {
         codealikeApi.dispose();
     });
 
-    it('not authenticate', done => {
+    it('Not authenticate', done => {
         codealikeApi.initialize('testClient');
 
         codealikeApi
             .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f0')
             .then(
                 (result) => { 
-                    throw new Error("Invalid token should not authenticate"); 
-                    done(); 
+                    assert.ok("Invalid token should authenticate if well formatted"); 
+                    done();
                 },
                 (error) => { 
                     assert.isNull(codealikeApi.userId, "Api should clean user id after a invalid authentication");
@@ -83,6 +83,27 @@ describe('Authentication', function() {
             );
 
         codealikeApi.dispose();
+    });
+
+    it('Notifies connection state changes', done => {
+        let subscriber = sinon.spy();
+        let subscriber2 = sinon.spy();
+
+        codealikeApi.initialize('testClient');
+
+        let position = codealikeApi.registerConnectionStateSubscriber(subscriber);
+
+        codealikeApi.setConnectionState({ state: 'connected' });
+        assert.equal(1, subscriber.callCount, "Subscribed function for connection state should be called on state change");
+
+        codealikeApi.unregisterConnectionStateSubscriber(position);
+
+        codealikeApi.setConnectionState({ state: 'disconnected' });
+        assert.equal(1, subscriber.callCount, "Unsubscribed function for connection state should not be called after unregistered");
+
+        codealikeApi.dispose();
+
+        done();
     });
 });
 

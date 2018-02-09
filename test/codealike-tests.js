@@ -44,24 +44,14 @@ describe('Codealike Tracker', function() {
     });
 
     it('Connects without network required', function() {
-        const apiLiveStub = sinon.stub(api, "authenticate");
-        const apiLocalStub = sinon.stub(api, "tryAuthenticateLocal");
+        const apiLiveSpy = sinon.spy(api, "authenticate");
 
         // if configuration has a token, it should not call api
-        configuration.globalSettings.userToken = null;
-        codealike.connect();
-        assert.equal(apiLocalStub.callCount, 0, "Should not try to authenticate local if token is not set");
-        assert.equal(apiLiveStub.callCount, 1, "Api should be called if user token is not set");
-        apiLiveStub.reset();
+        configuration.globalSettings.userToken = 'weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f6';
+        codealike.connect().then(() => {}, () => {});
+        assert.equal(apiLiveSpy.callCount, 1, "Api should be always called first");
 
-        // if configuration has a token, it should not call api
-        configuration.globalSettings.userToken = 'some-fake-token';
-        codealike.connect();
-        assert.equal(apiLocalStub.callCount, 1, "Should try to authenticate local if token is set");
-        assert.equal(apiLiveStub.callCount, 0, "Api shouldn't be called if user token is set");
-
-        apiLocalStub.restore();
-        apiLiveStub.restore();
+        apiLiveSpy.restore();
     });
 
     it('Tracking Events', function() {
@@ -227,5 +217,21 @@ describe('Codealike Tracker', function() {
 
         codealike.checkIdle.restore();
         this.clock.restore();
+    });
+
+    it('Notifies state changes', done => {
+        let subscriber = sinon.spy();
+
+        let position = codealike.registerStateSubscriber(subscriber);
+
+        api.setConnectionState({ state: 'connected' });
+        assert.equal(1, subscriber.callCount, "Subscribed function for connection state should be called on state change");
+
+        codealike.unregisterStateSubscriber(position);
+
+        api.setConnectionState({ state: 'disconnected' });
+        assert.equal(1, subscriber.callCount, "Unsubscribed function for connection state should not be called after unregistered");
+
+        done();
     });
 });

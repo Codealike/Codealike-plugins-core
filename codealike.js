@@ -20,6 +20,18 @@ var Codealike = {
     instanceId: '',
     hostFQDN: null,
 
+    /*
+     * stateSubscribers:
+     * This collection manages all subscribed to plugin state changes.
+     */
+    stateSubscribers: [],
+
+    /*
+     * stateSubscribers:
+     * This collection manages all subscribed to plugin state changes.
+     */
+    connectionSubscription: null,
+
     /* 
      *  stateBeforeIdle:
      *  In case of going idle, we have to save the current state
@@ -81,6 +93,9 @@ var Codealike = {
         // initialize api
         api.initialize(clientId);
 
+        // subscribes to network changes
+        Codealike.connectionSubscription = api.registerConnectionStateSubscriber(this.connectionStateSubscriber);
+
         // initialize recorder
         recorder.initialize();
 
@@ -106,6 +121,22 @@ var Codealike = {
         this.isInitialized = true;
 
         logger.info('Codealike initialized with instance id ' + instanceId);
+    },
+
+    connectionStateSubscriber: function(state) {
+        if (Codealike.stateSubscribers) {
+            Codealike.stateSubscribers.forEach(callback => {
+                callback(state);
+            });
+        }
+    },
+
+    registerStateSubscriber: function(subscriber) {
+        return (this.stateSubscribers.push(subscriber)-1);
+    },
+
+    unregisterStateSubscriber: function(position) {
+        this.stateSubscribers.splice(position, 1);
     },
 
     hasUserToken: function() {
@@ -139,6 +170,7 @@ var Codealike = {
         api.dispose();
 
         // set initialized as false
+        this.stateSubscribers = [];
         this.isInitialized = false;
         this.isConfigured = false;
 
@@ -161,16 +193,13 @@ var Codealike = {
         logger.info(`Codealike is connecting`);    
 
         return new Promise(function(resolve, reject) {
-            if (configuration.globalSettings.userToken) {
-                api.tryAuthenticateLocal(configuration.globalSettings.userToken)
-                    .then(result => resolve(result))
-                    .catch(error => reject(error));
-            }
-            else {
-                api.authenticate(configuration.globalSettings.userToken)
-                    .then(result => resolve(result))
-                    .catch(error => reject(error));
-            }
+            api.authenticate(configuration.globalSettings.userToken)
+                    .then(result => {
+                        resolve(result);
+                    })
+                    .catch(error => {
+                        reject(error);
+                    });
         });
     },
 

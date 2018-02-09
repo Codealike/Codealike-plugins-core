@@ -17,6 +17,15 @@ var Api = {
     isAuthenticated: false,
     isInitialized: false,
 
+    /*
+     * connectionState:
+     * Every time the plugin performs a network related operation
+     * this internal state tracking will be modified and external
+     * subscribers will be notified about the change.
+     */
+    connectionState: null,
+    stateSubscribers: [],
+
     initialize: function(clientId) {
         // client identificator should be provided to configure codealike instance
         if (!clientId)
@@ -48,48 +57,50 @@ var Api = {
         this.isAuthenticated = false;
     },
 
+    setOnLine: function() { Api.setConnectionState({ networkStatus: 'OnLine' }); },
+    setOffLine: function() { Api.setConnectionState({ networkStatus: 'OffLine' }); },
+
+    setConnectionState: function(newState) {
+        this.connectionState = newState;
+ 
+        this.stateSubscribers.forEach(callback => {
+            callback(Object.assign({}, { isAuthenticated: Api.isAuthenticated }, newState));
+        });
+     },
+ 
+    getConnectionState: function() {
+        return this.connectionState;
+    },
+
+    registerConnectionStateSubscriber: function(subscriber) {
+        return (this.stateSubscribers.push(subscriber)-1);
+    },
+
+    unregisterConnectionStateSubscriber: function(position) {
+        this.stateSubscribers.splice(position, 1);
+    },
+
     getPluginConfiguration: function() {
+        // save reference for inner execution
+        let that = this;
+
         return new Promise(
             function(resolve, reject) {
                 client.executeAnonymousGet('https://codealike.com/api/v2/public/PluginsConfiguration')
                     .then((result) => { 
+                        // if execute get worked, we are online
+                        that.setOnLine();
+
                         resolve(result);
                     })
                     .catch((error) => { 
+                        // if execute get did not worked, we are offline
+                        that.setOffLine();
+
                         reject(error);
                     });
             }
         );
-    },
-
-    tryAuthenticateLocal(userToken) {
-        if (!this.isInitialized)
-            throw new Error("Codealike Api should be initialized before used");
-        
-        // save reference for inner execution
-        let that = this;
-
-        // ensure old connection params are clean
-        that.isAuthenticated = true;
-        that.userId = null;
-        that.token = null;
-
-        return new Promise(function(resolve, reject) {
-            var tokenArray = userToken.split('/');
-
-            // token structure requires at least two elements
-            if (tokenArray.length != 2) {
-                reject("Invalid token provided");
-            }
-            else {
-                // set api as authenticated and resolve
-                that.isAuthenticated = true;
-                that.userId = tokenArray[0];
-                that.token = tokenArray[1];
-
-                resolve();
-            }
-        });
     },
 
     authenticate: function(userToken) {
@@ -125,16 +136,22 @@ var Api = {
                             that.userId = tempUserId;
                             that.token = tempToken;
 
+                            // if execute get worked, we are online
+                            that.setOnLine();
+
                             resolve(result);
                         })
                         .catch((error) => { 
-                            // if authentication was un succesful 
-                            // clean up user id and token and reject
-                            that.isAuthenticated = false;
-                            that.userId = null;
-                            that.token = null;
+                            // if authentication was unsuccesful 
+                            // but we still can authenticate local
+                            that.isAuthenticated = true;
+                            that.userId = tokenArray[0];
+                            that.token = tokenArray[1];
 
-                            reject(error);
+                            // if execute get did not worked, we are offline
+                            that.setOffLine();
+
+                            resolve();
                         });
                 }
             }
@@ -169,9 +186,15 @@ var Api = {
                 client.executeGet(that.clientId, `account/${that.userId}/profile`, that.userId, that.token)
                     .then(
                         (result) => { 
+                            // if execute get worked, we are online
+                            that.setOnLine();
+
                             resolve(result);
                         },
                         (error) => {
+                            // if execute get did not worked, we are offline
+                            that.setOffLine();
+
                             reject(error);
                         }
                     );
@@ -210,9 +233,15 @@ var Api = {
                 // execute request to authenticate the user
                 client.executePost(that.clientId, `solution`, that.userId, that.token, requestBody)
                     .then((result) => { 
+                        // if execute get worked, we are online
+                        that.setOnLine();
+
                         resolve(result);
                     })
                     .catch((error) => { 
+                        // if execute get did not worked, we are offline
+                        that.setOffLine();
+
                         reject(error);
                      });
             }
@@ -272,9 +301,15 @@ var Api = {
                 // execute request to authenticate the user
                 client.executePost(that.clientId, `activity`, that.userId, that.token, activityInfo)
                     .then((result) => { 
+                        // if execute post worked, we are online
+                        that.setOnLine();
+
                         resolve(result);
                     })
                     .catch((error) => { 
+                        // if execute post did not worked, we are offline
+                        that.setOffLine();
+
                         reject(error);
                      });
             }
