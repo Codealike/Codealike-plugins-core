@@ -379,6 +379,11 @@ var Codealike = {
             return null;
         }
 
+        if (dataToSend.states.every(state => state.type === activityType.Idle)) {
+            logger.info('Only idle data tracked. Batch discarded');
+            return null;
+        }
+
         // generate data package to be sent to the server
         let data = {
             machine: Codealike.hostFQDN,
@@ -556,7 +561,8 @@ var Codealike = {
         // if there is an state before idle, it means 
         // we left idle state with current event and 
         // we have to resume that state
-        if (this.stateBeforeIdle != null) {
+        if (this.stateBeforeIdle !== null 
+            && this.stateBeforeIdle !== activityType.System) {
             newState = this.stateBeforeIdle;
             this.stateBeforeIdle = null;
         }

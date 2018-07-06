@@ -111,7 +111,7 @@ var Recorder = {
        
         // get idle max interval in milliseconds
         var idleMinIntervalInMillisecons = configuration.pluginSettings.idleCheckInterval;
-        
+
         var currentTime = new Date();
         var entityBaseEnd = endableEntity.end || endableEntity.start;
         var elapsedPeriodBetweenLastEventAndNow = (currentTime - entityBaseEnd);

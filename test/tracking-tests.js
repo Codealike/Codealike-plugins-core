@@ -96,6 +96,19 @@ describe('Codealike tracking', function() {
         this.clock.restore();
     });
 
+    it('Tracks idle only state should not be flushed to server', function() {
+        this.clock = sinon.useFakeTimers();
+
+        codealike.startTracking({ projectId: 'test-project'});
+        codealike.flushData();
+
+        this.clock.tick(600000);
+        let data = codealike.getDataToFlush();
+        assert.equal(null, data, 'Data to flush should be null if only idle state was tracked');
+
+        this.clock.restore();
+    });
+
     it('System type event/state duration should not be modified',  done => {
         this.clock = sinon.useFakeTimers();
 
@@ -123,7 +136,7 @@ describe('Codealike tracking', function() {
         done();
     });
 
-    it('Do not track iddle time as last state when idle check is delayed',  done => {
+    it('Do not track idle time as last state when idle check is delayed',  done => {
         this.clock = sinon.useFakeTimers();
 
         var flushDataStub = sinon.stub(codealike, 'flushData').callsFake(() => {});
@@ -137,7 +150,7 @@ describe('Codealike tracking', function() {
         this.clock.tick(600000);
 
         let data = codealike.getDataToFlush();
-        
+
         assert.equal('00:00:30.000', data.events[1].duration, 'Events duration should not be greater than idle maximun period');
         assert.equal('00:00:30.000', data.states[1].duration, 'States duration should not be greater than idle maximun period');
 
