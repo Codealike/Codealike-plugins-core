@@ -3,20 +3,23 @@
 var assert = require('chai').assert;
 var expect = require('chai').expect;
 var sinon = require('sinon');
-var codealikeApi = require('../api/codealikeApi').Api
+var codealikeApi = require('../api/codealikeApi').Api;
+var configuration = require('../configuration');
 var logger = require('../logger/logger').Logger;
 
 describe('Codealike api initialization', function() {
     it('Initialization configuration', function() {
         expect(() => codealikeApi.initialize())
-            .to.throw('Codealike api initialization requires a client Id');
+            .to.throw('Codealike api initialization requires a configuration object');
     });
 });
 
 
 describe('Authentication', function() {
     it('Succesfully authenticate', done => {
-        codealikeApi.initialize('testClient');
+        configuration.initialize('testClient', '0', '0');
+        logger.initialize(configuration);
+        codealikeApi.initialize(configuration, logger);
 
         codealikeApi
             .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f6')
@@ -30,7 +33,9 @@ describe('Authentication', function() {
     });
 
     it('Succesfully get plugin settings', done => {
-        codealikeApi.initialize('testClient');
+        configuration.initialize('testClient', '0', '0');
+        logger.initialize(configuration);
+        codealikeApi.initialize(configuration, logger);
 
         codealikeApi
             .getPluginConfiguration()
@@ -45,7 +50,9 @@ describe('Authentication', function() {
     });
 
     it('Fail by parameter', done => {
-        codealikeApi.initialize('testClient');
+        configuration.initialize('testClient', '0', '0');
+        logger.initialize(configuration);
+        codealikeApi.initialize(configuration, logger);
 
         codealikeApi
             .authenticate('invalidtoken')
@@ -66,7 +73,9 @@ describe('Authentication', function() {
     });
 
     it('Not authenticate', done => {
-        codealikeApi.initialize('testClient');
+        configuration.initialize('testClient', '0', '0');
+        logger.initialize(configuration);
+        codealikeApi.initialize(configuration, logger);
 
         codealikeApi
             .authenticate('weak-9396226521/2f0928f1-5df7-43ca-be4f-e54ff99285f0')
@@ -89,7 +98,9 @@ describe('Authentication', function() {
         let subscriber = sinon.spy();
         let subscriber2 = sinon.spy();
 
-        codealikeApi.initialize('testClient');
+        configuration.initialize('testClient', '0', '0');
+        logger.initialize(configuration);
+        codealikeApi.initialize(configuration, logger);
 
         let position = codealikeApi.registerConnectionStateSubscriber(subscriber);
 
@@ -109,7 +120,9 @@ describe('Authentication', function() {
 
 describe('Get profile', function() {
     it('Succesfully get profile', done => {
-        codealikeApi.initialize('testClient');
+        configuration.initialize('testClient', '0', '0');
+        logger.initialize(configuration);
+        codealikeApi.initialize(configuration, logger);
 
         // manually configure valid authentication information
         codealikeApi.isAuthenticated = true;
@@ -131,7 +144,9 @@ describe('Get profile', function() {
     });
 
     it('Not authenticated', done => {
-        codealikeApi.initialize('testClient');
+        configuration.initialize('testClient', '0', '0');
+        logger.initialize(configuration);
+        codealikeApi.initialize(configuration, logger);
 
         codealikeApi
             .getProfile()

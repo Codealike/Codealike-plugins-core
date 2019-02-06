@@ -6,7 +6,9 @@ const os = require('os');
 
 var baseGlobalSettings = {
     userToken: null,
-    apiUrl: 'https://codealike.com/api/v2'
+    apiUrl: 'https://codealike.com/api/v2',
+    pluginConfigurationEndPoint: 'https://codealike.com/api/v2/public/PluginsConfiguration',
+    logLevel: 0
 };
 
 var basePluginSettings = {
@@ -17,6 +19,7 @@ var basePluginSettings = {
 
 var Configuration = {
     codealikeBasePath: null,
+    clientPath: null,
     instancePath: null, // path where current running instance related stuff is saved
     cachePath: null,
     historyPath: null,
@@ -24,6 +27,8 @@ var Configuration = {
     globalSettings: {
         userToken: null,
         apiUrl: 'https://codealike.com/api/v2',
+        pluginConfigurationEndPoint: 'https://codealike.com/api/v2/public/PluginsConfiguration',
+        logLevel: 0
     },
 
     pluginSettings: {
@@ -39,13 +44,17 @@ var Configuration = {
     },
 
     initialize: function(clientId, clientVersion, instanceId) {
-        // verify required folder structure exists
-        this.createRequiredPaths(clientId, instanceId);
-
         // store current instance settings
         this.instanceSettings.clientId = clientId;
         this.instanceSettings.clientVersion = clientVersion;
         this.instanceSettings.instanceId = instanceId;
+
+        // generates required paths information
+        this.codealikeBasePath = path.join(os.homedir(), '.codealike');
+        this.clientPath = path.join(this.codealikeBasePath, clientId);
+        this.instancePath = path.join(this.clientPath, instanceId);
+        this.cachePath = path.join(this.codealikeBasePath, 'cache');
+        this.historyPath = path.join(this.codealikeBasePath, 'history');
     },
 
     // plugin settings can be injected from outside
@@ -60,8 +69,13 @@ var Configuration = {
      *  should been loaded
      */
     loadGlobalSettings: function() {
+        // ensure required global path exists
+        this.ensurePathExists(this.codealikeBasePath);
+
+        // then try to load global settings
         let codealikeSettingsFile = path.join(this.codealikeBasePath, 'user.json');
 
+        // if settings file exists, load it
         if (fs.existsSync(codealikeSettingsFile)) {
             let existingConfiguration = JSON.parse(fs.readFileSync(codealikeSettingsFile, 'utf8'));
         
@@ -80,6 +94,9 @@ var Configuration = {
      *  to the codealike user folder
      */
     savelGlobalSettings: function(settings) {
+        // ensure required global path exists
+        this.ensurePathExists(this.codealikeBasePath);
+
         let codealikeSettingsFile = path.join(this.codealikeBasePath, 'user.json');
 
         // convert object to string
@@ -108,23 +125,6 @@ var Configuration = {
         if (!fs.existsSync(path)) {
             fs.mkdirSync(path);
         }
-    },
-
-    createRequiredPaths: function(clientId, instanceId) {
-        this.codealikeBasePath = path.join(os.homedir(), '.codealike');
-        this.ensurePathExists(this.codealikeBasePath);
-
-        let clientPath = path.join(this.codealikeBasePath, clientId);
-        this.ensurePathExists(clientPath);
-
-        this.instancePath = path.join(clientPath, instanceId);
-        this.ensurePathExists(this.instancePath);
-
-        this.cachePath = path.join(this.codealikeBasePath, 'cache');
-        this.ensurePathExists(this.cachePath);
-
-        this.historyPath = path.join(this.codealikeBasePath, 'history');
-        this.ensurePathExists(this.historyPath);
     }
 }
 

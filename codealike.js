@@ -68,9 +68,15 @@ var Codealike = {
         // initialize codealike configuration and load global settings
         configuration.initialize(clientId, clientVersion, instanceId);
 
+        // load user preferences from global settings file
+        configuration.loadGlobalSettings();
+
         // initialize logger
-        logger.initialize(configuration.instancePath);
+        logger.initialize(configuration);
         
+        // initialize api
+        api.initialize(configuration, logger);
+
         // try fetch plugin configuration from server
         // if retrieved, apply it. Else use defaults
         api.getPluginConfiguration().then(
@@ -86,18 +92,12 @@ var Codealike = {
         ).catch(error => {
             logger.log("Puglin settings could not been retrieved", error)
         });
-        
-        // load user preferences from global settings file
-        configuration.loadGlobalSettings();
-
-        // initialize api
-        api.initialize(clientId);
 
         // subscribes to network changes
         Codealike.connectionSubscription = api.registerConnectionStateSubscriber(this.connectionStateSubscriber);
 
         // initialize recorder
-        recorder.initialize();
+        recorder.initialize(configuration);
 
         // get the host name for currrent running environment
         // try to get full name, if failed got for os hostname
@@ -438,6 +438,8 @@ var Codealike = {
     },
 
     saveLocalCache: function(data) {
+        configuration.ensurePathExists(configuration.cachePath);
+
         // if there is data to flush, save it to disk
         let flushFilePath = path.join(configuration.cachePath, configuration.instanceSettings.clientId + '-' + moment().format('YYYYMMDDhhmmss') + '.json');
         fs.writeFile(flushFilePath, JSON.stringify(data), 'utf8',
@@ -512,6 +514,9 @@ var Codealike = {
             catch(error) {
                 logger.log("File " + fileName + " content is corrupt");
             }
+
+            // ensure history path exists
+            configuration.ensurePathExists(configuration.historyPath);
 
             // try to send data to server
             Codealike.sendDataToCodealike(data, false).then(

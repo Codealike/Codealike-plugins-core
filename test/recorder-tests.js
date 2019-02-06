@@ -4,6 +4,7 @@ var assert = require('chai').assert;
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var recorder = require('../recorder/recorder').Recorder
+var configuration = require('../configuration');
 var activityType = require('../types/activityType').ActivityType;
 
 describe('Codealike Recorder', function() {
@@ -17,7 +18,8 @@ describe('Codealike Recorder', function() {
     it('State after flushing should be consistent', function() {
         this.clock = sinon.useFakeTimers();
 
-        recorder.initialize();
+        configuration.initialize('testClient', '0', '0');
+        recorder.initialize(configuration);
 
         const firstEventStart = new Date();
         recorder.recordState({
@@ -72,7 +74,8 @@ describe('Codealike Recorder', function() {
     it('Update event duration', function() {
         this.clock = sinon.useFakeTimers();
 
-        recorder.initialize();
+        configuration.initialize('testClient', '0', '0');
+        recorder.initialize(configuration);
 
         const firstEventStart = new Date();
         recorder.recordEvent({
@@ -116,7 +119,8 @@ describe('Codealike Recorder', function() {
     it('Update state duration', function() {
         this.clock = sinon.useFakeTimers();
 
-        recorder.initialize();
+        configuration.initialize('testClient', '0', '0');
+        recorder.initialize(configuration);
 
         var state = {
             activityType: activityType.System,

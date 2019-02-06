@@ -1,6 +1,5 @@
 'use strict';
 
-var configuration = require('../configuration');
 var activityType = require('../types/activityType').ActivityType;
 var _ = require('lodash');
 var moment = require('moment');
@@ -11,8 +10,14 @@ var Recorder = {
     lastEvent: null,
     lastState: null,
     lastEventTime: null,
+    configuration: null,
 
-    initialize: function() {
+    initialize: function(configuration) {
+        // configuration instance should be provided
+        if (!configuration)
+            throw new Error('Codealike recorder initialization requires a configuration object');
+
+        this.configuration = configuration;
         this.isInitialized = true;
 
         this.lastEvent = null;
@@ -110,7 +115,7 @@ var Recorder = {
             return;
        
         // get idle max interval in milliseconds
-        var idleMinIntervalInMillisecons = configuration.pluginSettings.idleCheckInterval;
+        var idleMinIntervalInMillisecons = this.configuration.pluginSettings.idleCheckInterval;
 
         var currentTime = new Date();
         var entityBaseEnd = endableEntity.end || endableEntity.start;

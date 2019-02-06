@@ -1,7 +1,5 @@
 'use strict'
 
-var configuration = require('../configuration');
-var logger = require('../logger/logger').Logger;
 var client = require('./restClient/fetchClient').RestClient;
 
 var Api = {
@@ -17,6 +15,9 @@ var Api = {
     isAuthenticated: false,
     isInitialized: false,
 
+    configuration: null,
+    logger: null,
+
     /*
      * connectionState:
      * Every time the plugin performs a network related operation
@@ -26,34 +27,37 @@ var Api = {
     connectionState: null,
     stateSubscribers: [],
 
-    initialize: function(clientId) {
-        // client identificator should be provided to configure codealike instance
-        if (!clientId)
-            throw new Error('Codealike api initialization requires a client Id');
-        
-        // stores client identificator for api calls
-        this.clientId = clientId;
+    initialize: function(configuration, logger) {
+        // configuration instance should be provided
+        if (!configuration)
+            throw new Error('Codealike api initialization requires a configuration object');
+
+        // logger instance should be provided
+        if (!logger)
+            throw new Error('Codealike api initialization requires a logger object');
+
+        this.configuration = configuration;
+        this.logger = logger;
+        this.clientId = configuration.instanceSettings.clientId;
 
         // initializes client with server url
-        client.initialize(clientId, configuration.globalSettings.apiUrl);
+        client.initialize(this.clientId, configuration.globalSettings.apiUrl);
 
         // set initialized flag as true
         this.isInitialized = true;
 
-        logger.info('Codealike api initialized');
+        this.logger.info('Codealike api initialized');
     },
 
     dispose: function() {
         this.isInitialized = false;
-        this.clientId = null;
         this.stateSubscribers = [];
         
-        logger.info('Codealike api disposed');
+        this.logger.info('Codealike api disposed');
     },
 
     disconnect: function() {
         // clean up session information
-        this.clientId = null;
         this.userId = null;
         this.token = null;
         this.isAuthenticated = false;
@@ -91,7 +95,7 @@ var Api = {
 
         return new Promise(
             function(resolve, reject) {
-                client.executeAnonymousGet('https://codealike.com/api/v2/public/PluginsConfiguration')
+                client.executeAnonymousGet(that.configuration.globalSettings.pluginConfigurationEndPoint)
                     .then((result) => { 
                         // if execute get worked, we are online
                         that.setOnLine();
