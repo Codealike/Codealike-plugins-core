@@ -120,6 +120,22 @@ var Configuration = {
         return this.globalSettings.userToken;
     },
 
+    ensureLogPathExists() {
+        this.ensurePathExists(this.codealikeBasePath);
+        this.ensurePathExists(this.clientPath);
+        this.ensurePathExists(this.instancePath);
+    },
+
+    ensureCachePathExists() {
+        this.ensurePathExists(this.codealikeBasePath);
+        this.ensurePathExists(this.cachePath);
+    },
+
+    ensureHistoryPathExists() {
+        this.ensurePathExists(this.codealikeBasePath);
+        this.ensurePathExists(this.historyPath);
+    },
+
     ensurePathExists: function(path) {
         // ensure log and trace paths exists
         if (!fs.existsSync(path)) {

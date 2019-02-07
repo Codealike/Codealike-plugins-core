@@ -20,7 +20,7 @@ var Logger = {
         // while testing, log only to file, leaving stdout free for unit test status messages
         if (this.logLevel > 0) {
             // ensure instance path folder exists
-            configuration.ensurePathExists(configuration.instancePath);
+            configuration.ensureLogPathExists(configuration.instancePath);
 
             // creates the logger
             this.wlogger = new (winston.Logger)({
