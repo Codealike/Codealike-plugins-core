@@ -3,20 +3,24 @@ var winston = require('winston');
 var path = require('path');
 
 var Logger = {
-    // configuration instance, null by default
-    configuration: null,
+    // logLevel for future use
+    logLevel: 0,
 
     // logger instance, null by default
     wlogger: null,
 
     initialize: function(configuration) {
+        // configuration instance should be provided
+        if (!configuration)
+            throw new Error('Codealike logger initialization requires a configuration object');
+
         // sets expected log level
-        this.configuration = configuration;
+        this.logLevel = configuration.globalSettings.logLevel;
 
         // while testing, log only to file, leaving stdout free for unit test status messages
-        if (this.configuration.logLevel > 0) {
+        if (this.logLevel > 0) {
             // ensure instance path folder exists
-            this.configuration.ensurePathExists(configuration.instancePath);
+            configuration.ensurePathExists(configuration.instancePath);
 
             // creates the logger
             this.wlogger = new (winston.Logger)({
@@ -24,6 +28,8 @@ var Logger = {
                     new (winston.transports.File)({ filename: path.join(configuration.instancePath, 'codealike.log') })
                 ]
             });
+        } else {
+            this.wlogger = null;
         }
 
         this.info('Codealike logger started');
@@ -33,6 +39,8 @@ var Logger = {
         // prevent issues when logger was not initialized
         if (this.wlogger)
             this.wlogger.info('Codealike logger finished');
+        
+        this.wlogger = null;
     },
 
     info: function(message) {

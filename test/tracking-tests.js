@@ -1,15 +1,10 @@
 'use strict';
 
 var assert = require('chai').assert;
-var expect = require('chai').expect;
 var sinon = require('sinon');
 var codealike = require('../codealike').Codealike
 var activityType = require('../types/activityType').ActivityType;
 var recorder = require('../recorder/recorder').Recorder;
-var api = require('../api/codealikeApi').Api;
-var configuration = require('../configuration');
-var fs = require('fs');
-var path = require('path');
 
 const scriptToRun = [
     { "secondsElapsed": 0, "eventType": activityType.DocumentFocus, context: { "file": "file1", "line": 1 } },
