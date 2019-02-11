@@ -55,6 +55,9 @@ var Configuration = {
         this.instancePath = path.join(this.clientPath, instanceId);
         this.cachePath = path.join(this.codealikeBasePath, 'cache');
         this.historyPath = path.join(this.codealikeBasePath, 'history');
+
+        // configuration sure ensure existence of base path
+        this.ensureBasePathExists();
     },
 
     // plugin settings can be injected from outside
@@ -69,9 +72,6 @@ var Configuration = {
      *  should been loaded
      */
     loadGlobalSettings: function() {
-        // ensure required global path exists
-        this.ensurePathExists(this.codealikeBasePath);
-
         // then try to load global settings
         let codealikeSettingsFile = path.join(this.codealikeBasePath, 'user.json');
 
@@ -94,9 +94,6 @@ var Configuration = {
      *  to the codealike user folder
      */
     savelGlobalSettings: function(settings) {
-        // ensure required global path exists
-        this.ensurePathExists(this.codealikeBasePath);
-
         let codealikeSettingsFile = path.join(this.codealikeBasePath, 'user.json');
 
         // convert object to string
@@ -120,19 +117,20 @@ var Configuration = {
         return this.globalSettings.userToken;
     },
 
-    ensureLogPathExists() {
+    ensureBasePathExists() {
         this.ensurePathExists(this.codealikeBasePath);
+    },
+
+    ensureLogPathExists() {
         this.ensurePathExists(this.clientPath);
         this.ensurePathExists(this.instancePath);
     },
 
     ensureCachePathExists() {
-        this.ensurePathExists(this.codealikeBasePath);
         this.ensurePathExists(this.cachePath);
     },
 
     ensureHistoryPathExists() {
-        this.ensurePathExists(this.codealikeBasePath);
         this.ensurePathExists(this.historyPath);
     },
 
