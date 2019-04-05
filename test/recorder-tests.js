@@ -41,7 +41,7 @@ describe('Codealike Recorder', function() {
 
         this.clock.tick(6000);
 
-        // perform a get last batch 
+        // perform a get last batch
         let firstBatch = recorder.getLastBatch();
         assert.equal(firstBatch.states[firstBatch.states.length-1].type, recorder.lastState.type, 'After 1st batching results, last state should be kept');
         //assert.equal(firstBatch.states[firstBatch.states.length-1].end, recorder.lastState.start, 'After 1st batching results, last state should be kept with right timing');

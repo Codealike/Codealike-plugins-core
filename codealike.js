@@ -393,7 +393,7 @@ var Codealike = {
             extension: configuration.instanceSettings.clientVersion,
             instance: configuration.instanceSettings.instanceId,
             projects: [
-                { 
+                {
                     projectId: Codealike.currentProject.projectId,
                     name: Codealike.currentProject.projectName
                 }
@@ -402,7 +402,7 @@ var Codealike = {
                 let startTime = moment(state.start).format();
                 let endTime = moment(state.end).format();
                 let duration = moment.utc(moment(state.end).diff(moment(state.start))).format("HH:mm:ss.SSS");
-                
+
                 return {
                     parentId: state.projectId,
                     type: state.type,

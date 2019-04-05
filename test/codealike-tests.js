@@ -88,7 +88,7 @@ describe('Codealike Tracker', function() {
     it('Idle interval', done => {
         this.clock = sinon.useFakeTimers();
         var checkIdleSpy = sinon.spy(codealike, "checkIdle");
-        
+
         codealike.startTracking({ projectId: 'test-project'});
 
         this.clock.tick(60000);
@@ -96,7 +96,7 @@ describe('Codealike Tracker', function() {
         assert.equal(2, checkIdleSpy.callCount, 'Idle verification should be called twice');
 
         codealike.stopTracking();
-        
+
         codealike.checkIdle.restore();
         this.clock.restore();
 
@@ -133,15 +133,18 @@ describe('Codealike Tracker', function() {
         this.clock.tick(60000);
 
         // after a complete idle max period, state should go iddle
-        assert.equal(2, checkIdleSpy.callCount, 'Idle verification should be called twice');
-        assert.equal(activityType.Idle, recorder.lastState.type, 
+        assert.equal(2, checkIdleSpy.callCount,
+            'Idle verification should be called twice');
+        assert.equal(activityType.Idle, recorder.lastState.type,
             'After 60 secs of inactivity (60 secs total - 2nd idle check) Idle state should prevail');
-        assert.equal(activityType.Coding, codealike.stateBeforeIdle, 'Coding state should been saved as before idle state');
+        assert.equal(activityType.Coding, codealike.stateBeforeIdle,
+            'Coding state should been saved as before idle state');
 
         codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
-        assert.equal(activityType.Coding, recorder.lastState.type, 
+        assert.equal(activityType.Coding, recorder.lastState.type,
             'When getting back from idle, status should be coding');
-        assert.isNull(codealike.stateBeforeIdle, 'State before idle should been cleaned');
+        assert.isNull(codealike.stateBeforeIdle,
+            'State before idle should been cleaned');
 
         // same as before but debugging
         codealike.trackDebuggingState();
@@ -157,7 +160,7 @@ describe('Codealike Tracker', function() {
         assert.isNull(codealike.stateBeforeIdle, 'State before idle should been cleaned');
 
         codealike.stopTracking();
-        
+
         codealike.checkIdle.restore();
         this.clock.restore();
     });
@@ -175,38 +178,41 @@ describe('Codealike Tracker', function() {
         codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
         assert.equal(activityType.Coding, recorder.lastState.type, 
             'After coding event, Coding state should be present');
-        
+
         // Timer: 2 - 2 secs inactive
         this.clock.tick(2000);
         codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
 
         // Timer: 30 - 28 secs inactive
         this.clock.tick(28000);
-        assert.equal(1, checkIdleSpy.callCount, 'Idle verification should be called');
-        assert.equal(activityType.Coding, recorder.lastState.type, 
+        assert.equal(1, checkIdleSpy.callCount,
+            'Idle verification should be called');
+        assert.equal(activityType.Coding, recorder.lastState.type,
             'After 28 secs of inactivity (30 secs total - 1st idle check) Coding state should prevail');
 
         // Timer: 60 - 58 secs inactive
         this.clock.tick(30000);
-        assert.equal(2, checkIdleSpy.callCount, 'Idle verification should be called');
+        assert.equal(2, checkIdleSpy.callCount,
+            'Idle verification should be called');
         assert.equal(activityType.Coding, recorder.lastState.type, 
             'After 58 secs of inactivity (60 secs total - 2nd. idle check) Coding state should prevail');
 
         // Timer: 90 - 88 secs inactive
         this.clock.tick(30000);
-        assert.equal(3, checkIdleSpy.callCount, 'Idle verification should be called');
-        assert.equal(activityType.Idle, recorder.lastState.type, 
+        assert.equal(3, checkIdleSpy.callCount,
+            'Idle verification should be called');
+        assert.equal(activityType.Idle, recorder.lastState.type,
             'After 88 secs of inactivity (90 secs total - 3rd. idle check) System state should change to Idle');
-        
+
         // Timer: 120 - 118 secs inactive
         this.clock.tick(30000);
-        assert.equal(activityType.Idle, recorder.lastState.type, 
+        assert.equal(activityType.Idle, recorder.lastState.type,
             'After 118 secs of inactivity (120 secs total - 4th. idle check) System state should still be Idle');
 
         // Timer 122 - 120 secs inactive
         this.clock.tick(2000);
         codealike.trackCodingEvent({ file: 'f1.js', line: 12 });
-        assert.equal(activityType.Coding, recorder.lastState.type, 
+        assert.equal(activityType.Coding, recorder.lastState.type,
             'After 118 secs of inactivity (120 secs total - 4th. idle check) Coding state should have changed to Coding');
 
         var recordedBatch = recorder.getLastBatch();

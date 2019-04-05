@@ -14,8 +14,9 @@ var Recorder = {
 
     initialize: function(configuration) {
         // configuration instance should be provided
-        if (!configuration)
+        if (!configuration) {
             throw new Error('Codealike recorder initialization requires a configuration object');
+        }
 
         this.configuration = configuration;
         this.isInitialized = true;
@@ -42,14 +43,14 @@ var Recorder = {
         // if last state is null or last event is null
         // something is wrong, but nothing to do at this point
         // but to warn
-        if (this.lastState === null 
+        if (this.lastState === null
             || this.lastEvent === null) {
             console.log("Opppssss.", this.lastEvent, this.lastState);
             return null;
         }
 
         let currentTime = new Date();
-        
+
         // closes both types of events
         this.updateEndableEntityAsOfNowIfRequired(this.lastState);
         this.updateEndableEntityAsOfNowIfRequired(this.lastEvent);
@@ -63,10 +64,10 @@ var Recorder = {
         // given they will be starting over again now
         this.lastState.start = currentTime;
         this.lastState.end = null;
-        
+
         this.lastEvent.start = currentTime;
         this.lastEvent.end = null;
-        
+
         // initializes an empty session for further tracking
         this.currentSession = {
           states: [ this.lastState ],
@@ -83,9 +84,9 @@ var Recorder = {
      */
     isLastEventPropagating: function(event) {
         return (
-            this.lastEvent !== null && 
-            event.type === this.lastEvent.type && 
-            event.file === this.lastEvent.file && 
+            this.lastEvent !== null &&
+            event.type === this.lastEvent.type &&
+            event.file === this.lastEvent.file &&
             event.line === this.lastEvent.line
         );
     },
@@ -97,7 +98,7 @@ var Recorder = {
      */
     isLastStatePropagating: function(state) {
         return (
-            this.lastState !== null && 
+            this.lastState !== null &&
             state.type === this.lastState.type
         );
     },
@@ -106,14 +107,14 @@ var Recorder = {
      *  updateEndableEntityAsOfNowIfRequired:
      *  This method checks if last event/state should be provided
      *  with some spare time given a change. We expect an event
-     *  to be a continuous stream of items, if possible without 
+     *  to be a continuous stream of items, if possible without
      *  blank periods of time in between.
      */
     updateEndableEntityAsOfNowIfRequired: function(endableEntity) {
         // if entity is null, nothing to do here
         if (!endableEntity)
             return;
-       
+
         // get idle max interval in milliseconds
         var idleMinIntervalInMillisecons = this.configuration.pluginSettings.idleCheckInterval;
 

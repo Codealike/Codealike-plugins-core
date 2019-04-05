@@ -1,8 +1,8 @@
-'use strict'
-var winston = require('winston');
-var path = require('path');
+'use strict';
+const winston = require('winston');
+const path = require('path');
 
-var Logger = {
+const Logger = {
     // logLevel for future use
     logLevel: 0,
 
@@ -11,8 +11,9 @@ var Logger = {
 
     initialize: function(configuration) {
         // configuration instance should be provided
-        if (!configuration)
+        if (!configuration) {
             throw new Error('Codealike logger initialization requires a configuration object');
+        }
 
         // sets expected log level
         this.logLevel = configuration.globalSettings.logLevel;
@@ -39,7 +40,7 @@ var Logger = {
         // prevent issues when logger was not initialized
         if (this.wlogger)
             this.wlogger.info('Codealike logger finished');
-        
+
         this.wlogger = null;
     },
 
