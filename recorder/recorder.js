@@ -129,13 +129,13 @@ var Recorder = {
         else {
             // if event/state type is system related we track
             // whatever it is (no exceptions or checks about duration)
-            if (endableEntity.type === activityType.System 
+            if (endableEntity.type === activityType.System
                 || endableEntity.type === activityType.OpenSolution) {
                 endableEntity.end = currentTime;
             }
             else {
                 // else, we ensure it does not have inconsistent time
-                endableEntity.end = moment(endableEntity.start).add(idleMinIntervalInMillisecons);
+                endableEntity.end = moment(entityBaseEnd).add(idleMinIntervalInMillisecons);
             }
         }
     },

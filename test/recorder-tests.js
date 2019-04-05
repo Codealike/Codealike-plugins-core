@@ -139,4 +139,41 @@ describe('Codealike Recorder', function() {
 
         this.clock.restore();
     });
+
+    it('Update event duration after idle period', function() {
+        this.clock = sinon.useFakeTimers();
+
+        configuration.initialize('testClient', '0', '0');
+        recorder.initialize(configuration);
+
+        const firstEventStart = new Date();
+        recorder.recordEvent({
+            file: 'f1.js',
+            line: 12,
+            start: firstEventStart,
+        });
+
+        this.clock.tick(20000);
+
+        recorder.recordEvent({
+            file: 'f1.js',
+            line: 12,
+            start: new Date(),
+        });
+
+        this.clock.tick(configuration.pluginSettings.idleCheckInterval+1000);
+
+        recorder.recordEvent({
+            file: 'f2.js',
+            line: 1,
+            start: new Date(),
+        });
+
+        assert.equal(2, recorder.currentSession.events.length, 'Recorder should have recorded only two events');
+        assert.equal(recorder.lastEvent, recorder.currentSession.events[1], 'Recorder last event should be equal to last event in session');
+        assert.equal(50000, (recorder.currentSession.events[0].end - recorder.currentSession.events[0].start), 'First event should been updated for threshold as second event happened');
+        assert.equal(51000, (recorder.currentSession.events[1].start - firstEventStart), 'Last event should have started at right time');
+
+        this.clock.restore();
+    });
 });
