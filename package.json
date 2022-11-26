@@ -1,15 +1,15 @@
 {
   "name": "@codealike/codealike-core",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "description": "Codealike core",
   "main": "codealike.js",
   "scripts": {
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec test/**/*.js -t 10000"
   },
-"publishConfig": {
-   "@dmessing:registry": "https://npm.pkg.github.com"
- },
-  "author": "Daniel Iglesias <daniel.iglesias@outlook.com.ar>",
+  "publishConfig": {
+    "@codaelike:registry": "https://npm.pkg.github.com"
+  },
+  "author": "David Messinger<support@codealike.com>",
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.3.7",
