@@ -6,7 +6,7 @@ var Logger = {
     wlogger: null,
     initialize: function(logPath) {
         // while testing, log only to file, leaving stdout free for unit test status messages
-        this.wlogger = new (winston.Logger)({
+        this.wlogger = winston.createLogger({
             transports: [
                 new (winston.transports.File)({ filename: path.join(logPath, 'codealike.log') })
             ]

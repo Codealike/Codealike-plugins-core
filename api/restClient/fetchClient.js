@@ -1,10 +1,4 @@
-var fetch = require('node-fetch');
-var logger = require('../../logger/logger').Logger;
-
-const X_EAUTH_CLIENT_HEADER = "X-Eauth-Client";
-const X_EAUTH_TOKEN_HEADER = "X-Api-Token";
-const X_EAUTH_IDENTITY_HEADER = "X-Api-Identity";
-const MAX_RETRIES = 5;
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // this function returns the base common request
 // configuration required to hit the api
