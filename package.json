@@ -1,6 +1,6 @@
 {
   "name": "@codealike/codealike-core",
-  "version": "0.0.34-SNAPSHOT",
+  "version": "0.0.38",
   "description": "Codealike core",
   "main": "codealike.js",
   "scripts": {
