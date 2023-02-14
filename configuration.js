@@ -63,12 +63,16 @@ var Configuration = {
         let codealikeSettingsFile = path.join(this.codealikeBasePath, 'user.json');
 
         if (fs.existsSync(codealikeSettingsFile)) {
-            let existingConfiguration = JSON.parse(fs.readFileSync(codealikeSettingsFile, 'utf8'));
-        
-            if (existingConfiguration) {
-                this.globalSettings = Object.assign({}, baseGlobalSettings, existingConfiguration);
+            let existingConfiguration;
+            try {
+                existingConfiguration = JSON.parse(fs.readFileSync(codealikeSettingsFile, 'utf8'));
+            } catch (e) {
+                // ignore JSON parse errors
             }
-            else {
+        
+            if (!!existingConfiguration) {
+                this.globalSettings = Object.assign({}, baseGlobalSettings, existingConfiguration);
+            } else {
                 this.globalSettings = Object.assign({}, baseGlobalSettings);
             }
         }
